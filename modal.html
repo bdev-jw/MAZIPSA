@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>유지보수 정보</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: auto;
+            padding: 0;
+            background-color: rgba(255, 255, 255, 0.8);
+            max-width: 640px;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            position: relative;
+        }
+        h1 {
+            text-align: center;
+            font-weight: bold;
+            color: #3b3dc4;
+        }
+        .input-form, .file-upload {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #28a745;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>유지보수 관리</h1>
+
+    <div class="input-form">
+        <h2>유지보수 정보 입력</h2>
+        <input type="text" id="equipment" placeholder="장비명" />
+        <input type="date" id="date" />
+        <input type="text" id="cycle" placeholder="점검주기" />
+        <input type="text" id="content" placeholder="점검내용" />
+        <input type="text" id="manager" placeholder="점검담당자" />
+        <button onclick="addMaintenance()">추가</button>
+    </div>
+
+    <div class="file-upload">
+        <h2>파일 업로드</h2>
+        <input type="file" id="fileInput" />
+        <button onclick="uploadFile()">업로드</button>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', async () => {
+        const loggedClient = JSON.parse(localStorage.getItem('loggedClient'));
+        if (!loggedClient) return window.location.href = 'index.html';
+    });
+
+    async function addMaintenance() {
+        const loggedClient = JSON.parse(localStorage.getItem('loggedClient'));
+        const data = {
+            equipment: document.getElementById('equipment').value,
+            date: document.getElementById('date').value,
+            cycle: document.getElementById('cycle').value,
+            content: document.getElementById('content').value,
+            manager: document.getElementById('manager').value
+        };
+
+        console.log("🔹 유지보수 정보 전송 데이터:", data); // ✅ 디버깅용 로그
+
+        const response = await fetch(`http://localhost:3000/api/maintenance/${loggedClient.id}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+
+        if (response.ok) {
+            alert('유지보수 정보 추가 완료!');
+            localStorage.setItem("maintenanceUpdated", "true"); // ✅ 데이터가 변경되었음을 저장
+            window.location.href = "main.html"; // ✅ 유지보수 정보 추가 후 메인 화면으로 이동
+        } else {
+            alert('유지보수 정보 추가 실패');
+        }
+    }
+</script>
+
+</body>
+</html>

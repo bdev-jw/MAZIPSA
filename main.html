@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>사업 및 유지보수 정보</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: auto;
+            padding: 0;
+            background-color: rgba(255, 255, 255, 0.8);
+            max-width: 640px;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        .logout {
+            cursor: pointer;
+            padding: 10px 15px;
+            background-color: #87CEEB;
+            color: white;
+            border: none;
+            border-radius: 15px;
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 16px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        .business-info, .maintenance-info {
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        .business-info h2, .maintenance-info h2 {
+            text-align: center;
+            color: #0fb668;
+        }
+        .info-item {
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: rgba(240, 240, 240, 0.9);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .tabs {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+        }
+        .tab {
+            width: 100%;
+            height: 30px;
+            padding: 10px 20px;
+            cursor: pointer;
+            background-color: rgba(57, 81, 105, 0.886);
+            border: 1px solid #fff;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+            text-align: center;
+            font-weight: bold;
+            font-size: larger;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .tab:hover {
+            background-color: rgba(44, 20, 197, 0.5);
+        }
+        .active {
+            background-color: rgba(123, 175, 26, 0.5);
+        } 
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 5px;
+            border: 1px solid #757373;
+            text-align: center;
+        }
+        th {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        h1 {
+            text-align: center;
+            font-weight: bold;
+            color: #3b3dc4;
+        }
+
+        /* ✅ 모달 스타일 */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        .modal-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 20px;
+            border-radius: 5px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        .close-btn {
+            float: right;
+            font-size: 20px;
+            cursor: pointer;
+        }
+        .close-btn:hover {
+            color: red;
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #28a745;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        .equipment-button {
+            padding: 10px;
+            margin: 5px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .equipment-button:hover {
+            background-color: #0056b3;
+        }
+        .equipment-button.active {
+            background-color: #28a745;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1 id="clientHeader"></h1>
+    
+        <!-- ✅ 사업 정보 -->
+        <div class="business-info">
+            <h2><span id="projectName"></span> </h2>
+            <div class="info-item"><strong>납품장비:</strong> <span id="deliveredEquipment"></span></div>
+            <div class="info-item"><strong>영업 담당자:</strong> <span id="salesPerson"></span></div>
+            <div class="info-item"><strong>엔지니어 담당자:</strong> <span id="engineer"></span></div>
+            <div class="info-item"><strong>사업 시작 기간:</strong> <span id="startDate"></span></div>
+            <div class="info-item"><strong>사업 종료 기간:</strong> <span id="endDate"></span></div>
+        </div>
+    
+        <!-- ✅ "내용 추가" 버튼 -->
+        <div class="button-container">
+            <button class="open-modal-btn" onclick="openModal()">내용 추가</button>
+        </div>
+    
+        <!-- ✅ 유지보수 정보 입력 모달 -->
+        <div id="maintenanceModal" class="modal">
+            <div class="modal-content">
+                <span class="close-btn" onclick="closeModal()">&times;</span>
+                <h2>유지보수 정보 입력</h2>
+                <input type="text" id="equipment" placeholder="장비명" />
+                <input type="date" id="date" />
+                <input type="text" id="cycle" placeholder="점검주기" />
+                <input type="text" id="content" placeholder="점검내용" />
+                <input type="text" id="manager" placeholder="점검담당자" />
+                <button onclick="addMaintenance()">추가</button>
+            </div>
+        </div>
+    
+        <!-- ✅ 유지보수 정보 테이블 -->
+        <div class="tabs" id="equipmentTabs"></div>
+        <div class="section maintenance-info">
+            <h2>유지보수 정보</h2>
+            <div id="maintenance-table">
+                <table id="maintenanceDataTable">
+                    <tr>
+                        <th>점검일자</th>
+                        <th>점검주기</th>
+                        <th>점검내용</th>
+                        <th>점검담당자</th>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener("DOMContentLoaded", async () => {
+            const loggedClient = JSON.parse(localStorage.getItem("loggedClient"));
+            if (!loggedClient) {
+                window.location.href = "index.html";
+                return;
+            }
+    
+            try {
+                const response = await fetch(`http://localhost:3000/api/client/${loggedClient.id}`);
+                if (!response.ok) throw new Error("데이터를 가져오는 데 실패했습니다.");
+                const clientData = await response.json();
+    
+                document.getElementById("clientHeader").innerText = `${clientData.client_name}의 사업 현황`;
+                document.getElementById("projectName").innerText = clientData.business_info.project_name;
+                document.getElementById("deliveredEquipment").innerText = clientData.business_info.delivered_equipment;
+                document.getElementById("salesPerson").innerText = clientData.business_info.sales_person;
+                document.getElementById("engineer").innerText = clientData.business_info.engineer;
+                document.getElementById("startDate").innerText = clientData.business_info.startDate;
+                document.getElementById("endDate").innerText = clientData.business_info.endDate;
+    
+                // ✅ 유지보수 정보 불러오기
+                await loadMaintenanceData(loggedClient.id);
+    
+                // ✅ `modal.html`에서 데이터 추가 후 자동 업데이트
+                if (localStorage.getItem("maintenanceUpdated") === "true") {
+                    localStorage.removeItem("maintenanceUpdated");
+                    await loadMaintenanceData(loggedClient.id);
+                }
+            } catch (error) {
+                console.error("🚨 데이터 로드 중 오류 발생:", error);
+            }
+        });
+    
+        async function loadMaintenanceData(clientId) {
+            try {
+                const response = await fetch(`http://localhost:3000/api/maintenance/${clientId}`);
+                if (!response.ok) throw new Error("유지보수 정보를 불러오는 데 실패했습니다.");
+                const maintenanceData = await response.json();
+    
+                // ✅ 장비별 선택 버튼 생성
+                createEquipmentButtons(maintenanceData);
+    
+                // ✅ 첫 번째 장비의 유지보수 정보 표시
+                const firstEquipment = Object.keys(maintenanceData)[0];
+                if (firstEquipment) {
+                    showMaintenanceInfo(firstEquipment, maintenanceData);
+                }
+            } catch (error) {
+                console.error("🚨 유지보수 데이터 로드 중 오류 발생:", error);
+            }
+        }
+    
+        function createEquipmentButtons(maintenanceData) {
+            const tabsContainer = document.getElementById("equipmentTabs");
+            tabsContainer.innerHTML = ""; // 기존 버튼 초기화
+    
+            Object.keys(maintenanceData).forEach(equipment => {
+                const button = document.createElement("button");
+                button.innerText = equipment;
+                button.classList.add("equipment-button");
+                button.onclick = () => showMaintenanceInfo(equipment, maintenanceData);
+                tabsContainer.appendChild(button);
+            });
+        }
+    
+        function showMaintenanceInfo(equipment, maintenanceData) {
+            const data = maintenanceData[equipment];
+            if (!data) return;
+            
+            const table = document.getElementById("maintenanceDataTable");
+            table.innerHTML = `<tr><th>점검일자</th><th>점검주기</th><th>점검내용</th><th>점검담당자</th></tr>`;
+    
+            data.forEach(entry => {
+                const row = table.insertRow();
+                row.insertCell(0).innerText = entry.date;
+                row.insertCell(1).innerText = entry.cycle;
+                row.insertCell(2).innerText = entry.content;
+                row.insertCell(3).innerText = entry.manager;
+            });
+    
+            // ✅ 버튼 활성화 스타일 적용
+            document.querySelectorAll(".equipment-button").forEach(btn => btn.classList.remove("active"));
+            document.querySelectorAll(".equipment-button").forEach(btn => {
+                if (btn.innerText === equipment) {
+                    btn.classList.add("active");
+                }
+            });
+        }
+    
+        function openModal() {
+            window.location.href = "modal.html"; // ✅ 모달을 새 창으로 열기
+        }
+    </script>
+
+</body>
+</html>
