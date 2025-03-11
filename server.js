@@ -1,3 +1,4 @@
+require('dotenv').config(); // ✅ .env 파일 로드
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -11,24 +12,30 @@ app.use(express.json());
 
 const data = require('./data.js'); // ✅ 기존 데이터 불러오기
 
-// ✅ 파일 업로드 설정 (multer)
-const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        const uploadPath = 'uploads/';
-        if (!fs.existsSync(uploadPath)) fs.mkdirSync(uploadPath);
-        cb(null, uploadPath);
-    },
-    filename: function (req, file, cb) {
-        cb(null, Date.now() + path.extname(file.originalname));
-    }
-});
-const upload = multer({ storage });
+// ✅ MongoDB Atlas 연결
+const mongoURI = process.env.MONGODB_URI;
+if (!mongoURI) {
+    console.error("❌ 환경 변수 MONGODB_URI가 설정되지 않았습니다!");
+    process.exit(1); // 서버 종료
+}
 
-// ✅ MongoDB 연결
-mongoose.connect('mongodb://localhost:27017/maintenanceDB', { 
-    useNewUrlParser: true, 
-    useUnifiedTopology: true 
-});
+mongoose.connect(mongoURI)
+    .then(() => {
+        console.log('✅ MongoDB Atlas에 연결됨');
+
+        // ✅ 데이터 초기화 실행 후 서버 시작
+        initializeData().then(() => {
+            app.listen(3000, () => console.log('🚀 서버가 3000번 포트에서 실행 중...'));
+        }).catch(error => {
+            console.error('❌ 초기 데이터 삽입 중 오류 발생:', error);
+            process.exit(1);
+        });
+
+    })
+    .catch(err => {
+        console.error('❌ MongoDB 연결 오류:', err);
+        process.exit(1);
+    });
 
 // ✅ MongoDB 클라이언트 스키마
 const ClientSchema = new mongoose.Schema({
@@ -36,11 +43,11 @@ const ClientSchema = new mongoose.Schema({
     client_name: String,
     password: { type: String, required: true },
     business_info: Object,
-    maintenance_data: { type: Object, default: {} } // 🔹 유지보수 데이터를 기본값 `{}`으로 설정
+    maintenance_data: { type: Object, default: {} }
 });
 const Client = mongoose.model('Client', ClientSchema);
 
-// ✅ MongoDB 데이터 초기화 (유지보수 데이터 포함)
+// ✅ 데이터 초기화 함수
 const initializeData = async () => {
     console.log('📌 MongoDB 데이터 초기화 시작...');
     try {
@@ -51,7 +58,6 @@ const initializeData = async () => {
         for (const key in data.clients) {
             const clientData = data.clients[key];
 
-            // 유지보수 데이터가 없는 경우 기본값을 설정
             if (!clientData.maintenance_data) {
                 clientData.maintenance_data = {};
             }
@@ -65,11 +71,9 @@ const initializeData = async () => {
         console.log(`🚀 총 ${insertCount}개의 데이터를 삽입했습니다.`);
     } catch (error) {
         console.error('❌ 데이터 삽입 중 오류 발생:', error);
+        throw error;
     }
 };
-
-// 서버 시작 시 강제 실행
-initializeData();
 
 // ✅ 로그인 API
 app.post('/api/login', async (req, res) => {
@@ -96,7 +100,7 @@ app.get('/api/client/:id', async (req, res) => {
     }
 });
 
-// ✅ 유지보수 정보 조회 API (프론트엔드에서 실시간 업데이트 가능)
+// ✅ 유지보수 정보 조회 API
 app.get('/api/maintenance/:clientId', async (req, res) => {
     try {
         const client = await Client.findOne({ id: req.params.clientId });
@@ -132,10 +136,20 @@ app.post('/api/maintenance/:clientId', async (req, res) => {
     }
 });
 
+// ✅ 파일 업로드 설정 (multer)
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        const uploadPath = 'uploads/';
+        if (!fs.existsSync(uploadPath)) fs.mkdirSync(uploadPath);
+        cb(null, uploadPath);
+    },
+    filename: function (req, file, cb) {
+        cb(null, Date.now() + path.extname(file.originalname));
+    }
+});
+const upload = multer({ storage });
+
 // ✅ 파일 업로드 API
 app.post('/api/upload', upload.single('file'), (req, res) => {
     res.json({ message: '파일 업로드 성공', filename: req.file.filename });
 });
-
-// ✅ 서버 실행
-app.listen(3000, () => console.log('🚀 서버가 3000번 포트에서 실행 중...'));
