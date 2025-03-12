@@ -153,3 +153,11 @@ const upload = multer({ storage });
 app.post('/api/upload', upload.single('file'), (req, res) => {
     res.json({ message: '파일 업로드 성공', filename: req.file.filename });
 });
+
+// ✅ 정적 파일 서빙 설정
+app.use(express.static(path.join(__dirname, 'public')));
+
+// ✅ 모든 경로에 대해 index.html 서빙 (SPA를 위한 설정)
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});

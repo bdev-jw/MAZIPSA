@@ -91,18 +91,51 @@
 
         console.log("🔹 유지보수 정보 전송 데이터:", data); // ✅ 디버깅용 로그
 
-        const response = await fetch(`https://ma-helper.onrender.com/api/maintenance/${loggedClient.id}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        });
+        try {
+            const response = await fetch(`https://ma-helper.onrender.com/api/maintenance/${loggedClient.id}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
 
-        if (response.ok) {
-            alert('유지보수 정보 추가 완료!');
-            localStorage.setItem("maintenanceUpdated", "true"); // ✅ 데이터가 변경되었음을 저장
-            window.location.href = "main.html"; // ✅ 유지보수 정보 추가 후 메인 화면으로 이동
-        } else {
-            alert('유지보수 정보 추가 실패');
+            if (response.ok) {
+                alert('유지보수 정보 추가 완료!');
+                localStorage.setItem("maintenanceUpdated", "true"); // ✅ 데이터가 변경되었음을 저장
+                window.location.href = "main.html"; // ✅ 유지보수 정보 추가 후 메인 화면으로 이동
+            } else {
+                alert('유지보수 정보 추가 실패');
+            }
+        } catch (error) {
+            console.error("유지보수 정보 추가 중 오류 발생:", error);
+            alert("유지보수 정보 추가 중 오류가 발생했습니다.");
+        }
+    }
+
+    async function uploadFile() {
+        const fileInput = document.getElementById('fileInput');
+        if (!fileInput.files.length) {
+            alert('파일을 선택해주세요.');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('file', fileInput.files[0]);
+
+        try {
+            const response = await fetch('https://ma-helper.onrender.com/api/upload', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                alert(`파일 업로드 성공: ${result.filename}`);
+            } else {
+                alert('파일 업로드 실패');
+            }
+        } catch (error) {
+            console.error("파일 업로드 중 오류 발생:", error);
+            alert("파일 업로드 중 오류가 발생했습니다.");
         }
     }
 </script>
