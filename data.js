@@ -1,29 +1,71 @@
 const clients = {
     test1:{
         id:'test1@mesa.kr',
-        client_name:'SBS',
+        client_name:'(주)에스비에스(SBS)',
         password:'123',
         business_info: {
-            project_name: "PTL 교체 사업",
-            delivered_equipment: 'NetBackUP',
-            sales_person:'이준원',
-            engineer:'김창규',
-            startDate: '2024-06-01',
-            endDate:'2024-12-31'
+            project_name: "SBS 방송 IT 통합 유지보수",
+            delivered_equipment: 'Nutanix',
+            sales_person:'최성영',
+            engineer:'김두현',
+            startDate: '2024-01-01',
+            endDate:'2025-12-31'
         },
         maintenance_data:{
-            equipment1: [
+            Nutanix: [
                 {
-                    date: '2024-11-22',
-                    cycle: '매월',
-                    content: '정기 점검',
-                    manager: '이영희'
+                    date: '2025-01-21',
+                    cycle: '발생시',
+                    content: 'TS4500 I/0 Slot 장애처리',
+                    manager: '강영구'
                 },
                 {
-                    date: '2024-12-22',
-                    cycle: '매월',
-                    content: '정기 점검',
-                    manager: '이희'
+                    date: '2025-01-16',
+                    cycle: '발생시',
+                    content: 'Tfinity , TS4500 마이그레이션',
+                    manager: '강영구'
+                },
+                {
+                    date: '2025-01-21',
+                    cycle: '발생시',
+                    content: 'TS4500 I/0 Slot 장애처리',
+                    manager: '강영구'
+                },
+                {
+                    date: '2025-01-21',
+                    cycle: '발생시',
+                    content: 'TS4500 I/0 Slot 장애처리',
+                    manager: '강영구'
+                },
+                {
+                    date: '2025-01-21',
+                    cycle: '발생시',
+                    content: 'TS4500 I/0 Slot 장애처리',
+                    manager: '강영구'
+                },
+                {
+                    date: '2025-01-21',
+                    cycle: '발생시',
+                    content: 'TS4500 I/0 Slot 장애처리',
+                    manager: '강영구'
+                },
+                {
+                    date: '2025-01-21',
+                    cycle: '발생시',
+                    content: 'TS4500 I/0 Slot 장애처리',
+                    manager: '강영구'
+                },
+                {
+                    date: '2025-01-21',
+                    cycle: '발생시',
+                    content: 'TS4500 I/0 Slot 장애처리',
+                    manager: '강영구'
+                },
+                {
+                    date: '2025-01-21',
+                    cycle: '발생시',
+                    content: 'TS4500 I/0 Slot 장애처리',
+                    manager: '강영구'
                 }
             ],
             equipment2: [

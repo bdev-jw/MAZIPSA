@@ -171,47 +171,18 @@
             <button class="tab" id="addTab" onclick="showMaintenanceAdd()">추가</button>
         </div>
 
-        <!-- ✅ 유지보수 내역 조회 화면 -->
-        <div id="maintenanceView">
-            <div class="business-info">
-                <h2><span id="projectName"></span></h2>
-                <div class="info-item"><strong>납품장비:</strong> <span id="deliveredEquipment"></span></div>
-                <div class="info-item"><strong>영업 담당자:</strong> <span id="salesPerson"></span></div>
-                <div class="info-item"><strong>엔지니어 담당자:</strong> <span id="engineer"></span></div>
-                <div class="info-item"><strong>사업 시작 기간:</strong> <span id="startDate"></span></div>
-                <div class="info-item"><strong>사업 종료 기간:</strong> <span id="endDate"></span></div>
-            </div>
-
-            <!-- ✅ 유지보수 정보 테이블 -->
-            <div class="tabs" id="equipmentTabs"></div>
-            <div class="section maintenance-info">
-                <h2>유지보수 정보</h2>
-                <div id="maintenance-table">
-                    <table id="maintenanceDataTable">
-                        <tr>
-                            <th>점검일자</th>
-                            <th>점검주기</th>
-                            <th>점검내용</th>
-                            <th>점검담당자</th>
-                        </tr>
-                    </table>
-                </div>
-            </div>
+        <!-- ✅ 사업 정보 카드 -->
+        <div class="business-card-container-wrapper">
+            <div class="business-card-container" id="businessCards"></div>
         </div>
 
-        <!-- ✅ 유지보수 추가 입력 화면 -->
-        <div id="maintenanceAdd" style="display: none;">
-            <div class="input-form">
-                <h2>유지보수 정보 입력</h2>
-                <input type="text" id="equipment" placeholder="장비명" />
-                <input type="date" id="date" />
-                <input type="text" id="cycle" placeholder="점검주기" />
-                <input type="text" id="content" placeholder="점검내용" />
-                <input type="text" id="manager" placeholder="점검담당자" />
-                <button onclick="addMaintenance()">추가</button>
-            </div>
-        </div>
+        <!-- ✅ 유지보수 장비 선택 버튼 -->
+        <div class="tabs" id="equipmentTabs"></div>
 
+        <!-- ✅ 유지보수 정보 카드 -->
+        <div class="maintenance-card-wrapper">
+            <div class="maintenance-card-container" id="maintenanceCards"></div>
+        </div>
     </div>
 
     <script>
@@ -228,174 +199,170 @@
                 const clientData = await response.json();
 
                 document.getElementById("clientHeader").innerText = `${clientData.client_name}의 사업 현황`;
-                document.getElementById("projectName").innerText = clientData.business_info.project_name;
-                document.getElementById("deliveredEquipment").innerText = clientData.business_info.delivered_equipment;
-                document.getElementById("salesPerson").innerText = clientData.business_info.sales_person;
-                document.getElementById("engineer").innerText = clientData.business_info.engineer;
-                document.getElementById("startDate").innerText = clientData.business_info.startDate;
-                document.getElementById("endDate").innerText = clientData.business_info.endDate;
+
+                // ✅ 사업 정보 로드
+                createBusinessCards(clientData.business_info);
 
                 // ✅ 유지보수 데이터 로드
                 await loadMaintenanceData(loggedClient.id);
-                
-                // ✅ localStorage에서 업데이트 플래그 확인
-                if (localStorage.getItem("maintenanceUpdated") === "true") {
-                    localStorage.removeItem("maintenanceUpdated");
-                    await loadMaintenanceData(loggedClient.id); // 데이터 새로고침
-                }
             } catch (error) {
                 console.error("🚨 데이터 로드 중 오류 발생:", error);
             }
         });
 
+        function createBusinessCards(businessInfo) {
+            const container = document.getElementById("businessCards");
+            container.innerHTML = "";
+
+            // ✅ "사업 기간" 카드를 위한 변수 선언
+            let startDate = businessInfo.startDate || "N/A";
+            let endDate = businessInfo.endDate || "N/A";
+            let businessPeriod = `${startDate} ~ ${endDate}`;
+
+             // ✅ 사업 정보 키-값 쌍을 카드로 변환
+            Object.entries(businessInfo).forEach(([key, value]) => {
+                if (key === "startDate" || key === "endDate") return; // 🔥 사업기간 카드는 별도로 처리하므로 개별 카드 생성 방지
+                
+                const card = document.createElement("div");
+                card.classList.add("business-card");
+
+                card.innerHTML = `
+                    <div class="card-title">${convertKeyToTitle(key)}</div>
+                    <div class="card-content">${value}</div>
+                `;
+
+                container.appendChild(card);
+            });
+
+                // ✅ "사업 기간" 카드 추가
+                const periodCard = document.createElement("div");
+                periodCard.classList.add("business-card");
+
+                periodCard.innerHTML = `
+                    <div class="card-title">사업 기간</div>
+                    <div class="card-content">${businessPeriod}</div>
+                `;
+
+                container.appendChild(periodCard);
+        }
+
+        function convertKeyToTitle(key) {
+            const titles = {
+                project_name: "사업명",
+                delivered_equipment: "납품장비",
+                sales_person: "영업 담당자",
+                engineer: "엔지니어 담당자",
+                startDate: "사업 시작 기간",
+                endDate: "사업 종료 기간"
+            };
+            return titles[key] || key;
+        }
+
+         // ✅ 마우스로 드래그하여 카드 이동 기능
+         let isDown = false;
+         let startX;
+         let scrollLeft;
+ 
+         const slider = document.getElementById("businessCards");
+ 
+         slider.addEventListener("mousedown", (e) => {
+             isDown = true;
+             slider.classList.add("active");
+             startX = e.pageX - slider.offsetLeft;
+             scrollLeft = slider.scrollLeft;
+         });
+ 
+         slider.addEventListener("mouseleave", () => {
+             isDown = false;
+             slider.classList.remove("active");
+         });
+ 
+         slider.addEventListener("mouseup", () => {
+             isDown = false;
+             slider.classList.remove("active");
+         });
+ 
+         slider.addEventListener("mousemove", (e) => {
+             if (!isDown) return;
+             e.preventDefault();
+             const x = e.pageX - slider.offsetLeft;
+             const walk = (x - startX) * 2; // 드래그 속도 조절
+             slider.scrollLeft = scrollLeft - walk;
+         });
+
+        async function loadMaintenanceData(clientId) {
+            try {
+                const response = await fetch(`https://ma-helper.onrender.com/api/maintenance/${clientId}`);
+                if (!response.ok) throw new Error("유지보수 정보를 불러오는 데 실패했습니다.");
+                const maintenanceData = await response.json();
+
+                createEquipmentButtons(maintenanceData);
+
+                const firstEquipment = Object.keys(maintenanceData)[0];
+                if (firstEquipment) {
+                    showMaintenanceInfo(firstEquipment, maintenanceData);
+                }
+            } catch (error) {
+                console.error("🚨 유지보수 데이터 로드 중 오류 발생:", error);
+            }
+        }
+
+        function createEquipmentButtons(maintenanceData) {
+            const tabsContainer = document.getElementById("equipmentTabs");
+            tabsContainer.innerHTML = "";
+
+            Object.keys(maintenanceData).forEach(equipment => {
+                const button = document.createElement("button");
+                button.innerText = equipment;
+                button.classList.add("equipment-button");
+                button.onclick = () => showMaintenanceInfo(equipment, maintenanceData);
+                tabsContainer.appendChild(button);
+            });
+        }
+
+        function showMaintenanceInfo(equipment, maintenanceData) {
+            const data = maintenanceData[equipment];
+            if (!data) return;
+            
+            const container = document.getElementById("maintenanceCards");
+            container.innerHTML = "";
+
+            data.forEach(entry => {
+                const card = document.createElement("div");
+                card.classList.add("maintenance-card");
+
+                card.innerHTML = `
+                    <div class="card-header">
+                        <span class="date">${entry.date}</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="manager">
+                            <img src="/public/man.png" class="manager-icon">
+                            ${entry.manager}
+                        </div>
+                        <div class="content">${entry.content}</div>
+                    </div>
+                `;
+
+                container.appendChild(card);
+            });
+        }
+
         function showMaintenanceView() {
-            document.getElementById("maintenanceView").style.display = "block";
-            document.getElementById("maintenanceAdd").style.display = "none";
+            document.getElementById("businessCards").style.display = "flex";
+            document.getElementById("maintenanceCards").style.display = "grid";
+            document.getElementById("equipmentTabs").style.display = "flex"; // ✅ 유지보수 장비 버튼 표시
             document.getElementById("viewTab").classList.add("active");
             document.getElementById("addTab").classList.remove("active");
         }
 
         function showMaintenanceAdd() {
-            document.getElementById("maintenanceView").style.display = "none";
-            document.getElementById("maintenanceAdd").style.display = "block";
+            document.getElementById("businessCards").style.display = "none";
+            document.getElementById("maintenanceCards").style.display = "none";
+            document.getElementById("equipmentTabs").style.display = "none"; // ✅ 유지보수 장비 버튼 숨김
             document.getElementById("viewTab").classList.remove("active");
             document.getElementById("addTab").classList.add("active");
-        }
-
-        async function addMaintenance() {
-            const loggedClient = JSON.parse(localStorage.getItem("loggedClient"));
-            const data = {
-                equipment: document.getElementById("equipment").value,
-                date: document.getElementById("date").value,
-                cycle: document.getElementById("cycle").value,
-                content: document.getElementById("content").value,
-                manager: document.getElementById("manager").value
-            };
-
-            try {
-                const response = await fetch(`https://ma-helper.onrender.com/api/maintenance/${loggedClient.id}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
-
-                if (response.ok) {
-                    alert("유지보수 정보 추가 완료!");
-                    localStorage.setItem("maintenanceUpdated", "true"); // 데이터가 변경되었음을 저장
-                    
-                    // 추가 후 바로 데이터를 새로고침
-                    await loadMaintenanceData(loggedClient.id);
-                    
-                    showMaintenanceView(); // '조회' 탭으로 돌아가기
-                } else {
-                    alert("유지보수 정보 추가 실패");
-                }
-            } catch (error) {
-                console.error("유지보수 정보 추가 중 오류 발생:", error);
-                alert("유지보수 정보 추가 중 오류가 발생했습니다.");
-            }
-        }
-
-        async function loadMaintenanceData(clientId) {
-            try {
-                const response = await fetch(`https://ma-helper.onrender.com/api/maintenance/${clientId}`);
-                if (!response.ok) throw new Error("유지보수 데이터를 가져오는 데 실패했습니다.");
-                
-                const maintenanceData = await response.json();
-                console.log("유지보수 데이터:", maintenanceData);
-                
-                // 장비 탭 생성
-                const equipmentTabs = document.getElementById("equipmentTabs");
-                equipmentTabs.innerHTML = '';
-                
-                // 첫 장비를 기본 선택
-                let firstEquipment = null;
-                
-                // 장비별 탭 버튼 생성
-                for (const equipment in maintenanceData) {
-                    if (!firstEquipment) firstEquipment = equipment;
-                    
-                    const tabButton = document.createElement("button");
-                    tabButton.className = "equipment-button";
-                    tabButton.textContent = equipment;
-                    tabButton.onclick = () => showEquipmentData(equipment, maintenanceData);
-                    equipmentTabs.appendChild(tabButton);
-                }
-                
-                // 첫 번째 장비 데이터 표시
-                if (firstEquipment) {
-                    showEquipmentData(firstEquipment, maintenanceData);
-                } else {
-                    // 데이터가 없는 경우 메시지 표시
-                    document.getElementById("maintenanceDataTable").innerHTML = `
-                        <tr>
-                            <th>점검일자</th>
-                            <th>점검주기</th>
-                            <th>점검내용</th>
-                            <th>점검담당자</th>
-                        </tr>
-                        <tr>
-                            <td colspan="4">등록된 유지보수 데이터가 없습니다.</td>
-                        </tr>
-                    `;
-                }
-            } catch (error) {
-                console.error("유지보수 데이터 로드 중 오류 발생:", error);
-                document.getElementById("maintenanceDataTable").innerHTML = `
-                    <tr>
-                        <th>점검일자</th>
-                        <th>점검주기</th>
-                        <th>점검내용</th>
-                        <th>점검담당자</th>
-                    </tr>
-                    <tr>
-                        <td colspan="4">데이터를 불러오는 중 오류가 발생했습니다.</td>
-                    </tr>
-                `;
-            }
-        }
-
-        // 특정 장비의 유지보수 데이터를 표시하는 함수
-        function showEquipmentData(equipment, maintenanceData) {
-            // 모든 장비 버튼의 active 클래스 제거
-            const buttons = document.querySelectorAll(".equipment-button");
-            buttons.forEach(btn => btn.classList.remove("active"));
-            
-            // 현재 선택된 장비 버튼에 active 클래스 추가
-            const currentButton = Array.from(buttons).find(btn => btn.textContent === equipment);
-            if (currentButton) currentButton.classList.add("active");
-            
-            // 테이블 헤더 작성
-            let tableHTML = `
-                <tr>
-                    <th>점검일자</th>
-                    <th>점검주기</th>
-                    <th>점검내용</th>
-                    <th>점검담당자</th>
-                </tr>
-            `;
-            
-            // 장비별 유지보수 데이터 행 추가
-            if (maintenanceData[equipment] && maintenanceData[equipment].length > 0) {
-                maintenanceData[equipment].forEach(item => {
-                    tableHTML += `
-                        <tr>
-                            <td>${item.date}</td>
-                            <td>${item.cycle}</td>
-                            <td>${item.content}</td>
-                            <td>${item.manager}</td>
-                        </tr>
-                    `;
-                });
-            } else {
-                tableHTML += `
-                    <tr>
-                        <td colspan="4">해당 장비의 유지보수 데이터가 없습니다.</td>
-                    </tr>
-                `;
-            }
-            
-            document.getElementById("maintenanceDataTable").innerHTML = tableHTML;
+            window.location.href = "modal.html"; // ✅ '추가' 클릭 시 modal.html로 이동
         }
     </script>
 
@@ -423,37 +390,106 @@
             color: white;
         }
 
-        .input-form {
-            background-color: #f9f9f9;
+        .maintenance-card-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .maintenance-card {
+            background-color: #ffffff;
             padding: 15px;
-            border-radius: 5px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-            max-width: 400px;
-            margin: auto;
-            text-align: center;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            position: relative;
         }
 
-        input {
-            width: 100%;
-            padding: 8px;
-            margin: 5px 0;
-            border: 1px solid #ccc;
-            border-radius: 5px;
+        .card-header {
+            display: flex;
+            justify-content: flex-end;
+            font-size: 14px;
+            font-weight: bold;
+            color: #555;
         }
 
-        button {
-            width: 100%;
+        .date {
+            color: #007bff;
+            font-size: small;
+        }
+
+        .card-body {
+            margin-top: 10px;
+        }
+
+        .manager {
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .manager-icon {
+            width: 20px;
+            height: 20px;
+            margin-right: 5px;
+        }
+
+        .content {
+            font-size: 17px;
+            color: #666;
+        }
+
+        .equipment-button {
             padding: 10px;
-            background-color: #28a745;
+            margin: 5px;
+            background-color: #007bff;
+            color: white;
             border: none;
             border-radius: 5px;
-            color: white;
             cursor: pointer;
         }
 
-        button:hover {
-            background-color: #218838;
+        .equipment-button:hover {
+            background-color: #0056b3;
         }
+
+        .equipment-button.active {
+            background-color: #28a745;
+        }
+        /* ✅ 사업 정보 카드 스타일 */
+        .business-card-container {
+            display: flex;
+            gap: 15px;
+            overflow-x: hidden; /* 스크롤바 제거 */
+            padding-bottom: 10px;
+            white-space: nowrap;
+        }
+
+        .business-card {
+            background-color: #ffffff;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            min-width: auto;
+            max-width: 250px;
+            flex-shrink: 0;
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #007bff;
+            margin-bottom: 10px;
+        }
+
+        .card-content {
+            font-size: 14px;
+            color: #333;
+        }
+
     </style>
 
 </body>
