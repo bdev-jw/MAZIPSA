@@ -4,7 +4,7 @@ const clients = {
         client_name:'(주)에스비에스(SBS)',
         password:'123',
         business_info: {
-            project_name: "SBS 방송 IT 통합 유지보수",
+            project_name: "방송 IT 통합 유지보수",
             delivered_equipment: 'Nutanix',
             sales_person:'최성영',
             engineer:'김두현',
@@ -12,7 +12,9 @@ const clients = {
             endDate:'2025-12-31'
         },
         maintenance_data:{
-            Nutanix: [
+            equipment1: {
+                name: "NUTANIX",
+                records: [
                 {
                     date: '2025-01-21',
                     cycle: '발생시',
@@ -28,20 +30,20 @@ const clients = {
                 {
                     date: '2025-01-21',
                     cycle: '발생시',
-                    content: 'TS4500 I/0 Slot 장애처리',
-                    manager: '강영구'
+                    content: '장애 처리 및 테스트',
+                    manager: '김두현'
+                },
+                {
+                    date: '2025-01-21',
+                    cycle: '발생시',
+                    content: '장애 처리',
+                    manager: '황인성'
                 },
                 {
                     date: '2025-01-21',
                     cycle: '발생시',
                     content: 'TS4500 I/0 Slot 장애처리',
-                    manager: '강영구'
-                },
-                {
-                    date: '2025-01-21',
-                    cycle: '발생시',
-                    content: 'TS4500 I/0 Slot 장애처리',
-                    manager: '강영구'
+                    manager: '한형구'
                 },
                 {
                     date: '2025-01-21',
@@ -67,24 +69,33 @@ const clients = {
                     content: 'TS4500 I/0 Slot 장애처리',
                     manager: '강영구'
                 }
-            ],
-            equipment2: [
+            ]
+        },
+            equipment2: {
+                name: "NETBACKUP",
+                records: [
                 {
                     date: '2024-12-15',
                     cycle: '2개월',
                     content: '부품 교체',
                     manager: '박민수'
                 }
-            ],
-            equipment3: [
+            ]
+        },
+            equipment3: {
+                name: "CIDER",
+                records: [
                 {
                     date: '2024-11-30',
                     cycle: '3개월',
                     content: '소프트웨어 업데이트',
                     manager: '김지혜'
                 }
-            ],
-            equipment4: [
+            ]
+        },
+            equipment4: {
+                name: "DELL",
+                records: [
                 {
                     date: '2024-10-10',
                     cycle: '매주',
@@ -92,6 +103,73 @@ const clients = {
                     manager: '이상우'
                 }
             ]
+        },
+        equipment5: {
+            name: "LAMPAD",
+            records: [
+            {
+                date: '2024-12-15',
+                cycle: '2개월',
+                content: '부품 교체',
+                manager: '박민수'
+            }
+        ]
+    },
+        equipment6: {
+            name: "RIMINI",
+            records: [
+            {
+                date: '2024-11-30',
+                cycle: '3개월',
+                content: '소프트웨어 업데이트',
+                manager: '김지혜'
+            }
+        ]
+    },
+        equipment7: {
+            name: "REDHAT",
+            records: [
+            {
+                date: '2024-10-10',
+                cycle: '매주',
+                content: '상태 점검',
+                manager: '이상우'
+            }
+        ]
+    },
+        equipment8: {
+            name: "VERITAS",
+            records: [
+            {
+                date: '2024-10-10',
+                cycle: '매주',
+                content: '상태 점검',
+                manager: '이상우'
+            }
+        ]
+    },
+        equipment9: {
+            name: "QSTAR",
+            records: [
+            {
+                date: '2024-10-10',
+                cycle: '매주',
+                content: '상태 점검',
+                manager: '이상우'
+            }
+        ]
+    },
+        equipment10: {
+            name: "STRATUS",
+            records: [
+            {
+                date: '2024-10-10',
+                cycle: '매주',
+                content: '상태 점검',
+                manager: '이상우'
+            }
+        ]
+    }
         }
     },
     test2:{

@@ -13,11 +13,62 @@
             max-width: 640px;
             touch-action: pan-y; /* Enable vertical scrolling */
         }
+        .app-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            padding: 5px 15px;
+            font-size: 24px;
+            font-weight: bold;
+            padding: 5px;
+            background-color: #f8f9fa; /* 배경색 (선택 사항) */
+            border-bottom: 2px solid #ddd; /* 구분선 추가 */
+        }
+        .search-overlay {
+            display: none;
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .search-container {
+            background-color: rgb(245, 245, 245);
+            width: 100%; /* 화면 너비의 90%로 조정 */
+            max-width: 500px;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            height: 70%; /* 화면 높이의 70%로 조정 */
+        }
+        .search-input {
+            width: 100%;
+            max-width: 500px;
+            padding-top: 5px;
+            padding-bottom: 5px;
+            margin-bottom: 5px;
+            border-radius: 5px;
+        }
+        .search-results {
+            width: 100%;
+            flex-grow: 1;
+            overflow-y: auto;
+            margin-bottom: 10px;
+        }
+        #searchIcon {
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+        }
         .container {
             display: flex;
             flex-direction: column;
-            height: 100vh;
-            padding: 10px
+            height: 100%;
         }
         .logout {
             cursor: pointer;
@@ -95,6 +146,12 @@
             text-align: center;
             font-weight: bold;
             color: #3b3dc4;
+            font-size: clamp(30px, 5vw, 100px); /* ✅ 화면 크기에 따라 동적 조정 */
+            white-space: nowrap; /* ✅ 한 줄 유지 */
+            overflow: hidden; /* ✅ 넘칠 경우 숨김 */
+            text-overflow: ellipsis; /* ✅ 너무 길 경우 ...으로 표시 */
+            max-width: 100%; /* ✅ 부모 요소에 맞게 자동 조정 */
+            margin: 0 auto;
         }
         .modal {
             display: none;
@@ -125,7 +182,7 @@
         }
         input {
             width: 100%;
-            padding: 8px;
+            padding: 0;
             margin: 5px 0;
             border: 1px solid #ccc;
             border-radius: 5px;
@@ -136,26 +193,94 @@
             background-color: #28a745;
             border: none;
             border-radius: 5px;
-            color: white;
+            color: black;
             cursor: pointer;
         }
         button:hover {
             background-color: #218838;
         }
+        #equipmentTabsContainer {
+            width: 100%;
+            max-width: 640px;
+            overflow: hidden; /* 스크롤바 숨김 */
+            position: relative;
+        }
+        
+        .scroll-container {
+            display: grid;
+            grid-template-columns: repeat(auto, minmax(150px, 1fr)); /* 3열로 고정 */
+            grid-template-rows: repeat(2, auto); /* Two rows */
+            gap: 15px; /* Space between buttons */
+            padding-top: 10px;
+            padding-bottom: 10px;
+            overflow-x: auto;
+            overflow-y: hidden; /* Hide vertical overflow */
+            grid-auto-flow: column; /* Fill columns first before moving to next row */
+            scroll-snap-type: x mandatory;
+            user-select: none;
+            cursor: grab;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none; /* Hide scrollbar for Firefox */
+            -ms-overflow-style: none; /* Hide scrollbar for IE/Edge */
+            max-height: auto; /* Set a max height to contain two rows */
+            width: 100%; /* 전체 너비 사용 */
+        }
+        .scroll-container::-webkit-scrollbar {
+            display: none; /* Hide scrollbar for Chrome, Safari, and Opera */
+        }
         .equipment-button {
-            padding: 10px;
-            margin: 5px;
-            background-color: #007bff;
-            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 200px; /* Fixed width */
+            height: 70px; /* Fixed height */
             border: none;
-            border-radius: 5px;
+            border-radius: 10px;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
             cursor: pointer;
+            transition: transform 0.2s ease-in-out;
+            scroll-snap-align: start;
+            position:relative;
         }
         .equipment-button:hover {
-            background-color: #0056b3;
-        }
+            background-color: #030303;
+}
         .equipment-button.active {
-            background-color: #28a745;
+            background-color: #141414;
+        }
+        /* 첫 번째 열 (1열, 4열, ...) */
+        .equipment-button:nth-child(3n+1) {
+            background-color: #f0f8ff; /* 연한 파란색 */
+        }
+
+        /* 두 번째 열 (2열, 5열, ...) */
+        .equipment-button:nth-child(3n+2) {
+            background-color: #e6f2ff; /* 더 연한 파란색 */
+        }
+
+        /* 세 번째 열 (3열, 6열, ...) */
+        .equipment-button:nth-child(3n+3) {
+            background-color: #f0f0f0; /* 회색 계열 */
+        }
+        .equipment-button img {
+            width: 30px;
+            height: 30px;
+            object-fit: contain;
+            margin-bottom: 5px;
+        }
+        .equipment-button span {
+            font-size: 10px;
+            text-align: center;
+            white-space: break-word;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
+        }
+        
+        /* 가로 스크롤 드래그 */
+        .scroll-container::-webkit-scrollbar {
+            display: none; /* 기본 스크롤바 숨김 */
         }
         .tab-container {
             display: flex;
@@ -174,48 +299,53 @@
             transition: background-color 0.3s;
         }
         .tab.active {
-            background-color: #007bff;
+            background-color: #1c1d1d;
             color: white;
         }
         .business-card-container {
-            display: flex;
-            gap: 15px;
-            overflow-x: scroll; /* Allow horizontal scrolling */
-            padding-bottom: 10px;
+            width: 100%;
+            max-width: 640px;
+            height: auto;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr); /* 2열 */
+            grid-template-rows: repeat(2, auto); /* 2행 */
+            gap: 10px;
+            padding-bottom :10px;
+            padding-top: 10px;
             white-space: nowrap;
-            -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
-            scrollbar-width: none; /* Hide scrollbar for Firefox */
-            -ms-overflow-style: none; /* Hide scrollbar for Internet Explorer and Edge */
         }
-        .business-card-container::-webkit-scrollbar {
-            display: none; /* Hide scrollbar for Chrome, Safari and Opera */
-        }
+        
         .business-card {
-            background-color: #ffffff;
-            padding: 15px;
+            width: 100%;
+            max-width: 300px; /* 카드 최대 크기 */
+            height: auto;
+            padding: 5px;
+            background: #dde9ff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             border-radius: 10px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-            width: fit-content; /* 내부 글자에 맞춰 크기 조정 */
-            max-width: 300px; /* 최대 너비 제한 */
-            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            justify-self: center;
         }
+        
         .maintenance-card-wrapper {
             position: relative;
             width: 100%;
-            height: 60vh; /* 높이 조정 */
             overflow: hidden;
         }
         .maintenance-card-scroller {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 15px;
-            margin-top: 20px;
+            padding-top: 10px;
+            padding-bottom: 10px;
             position: relative;
-            max-height: 70vh;
             overflow-y: auto; /* 스크롤 가능하도록 변경 */
             overscroll-behavior-y: contain; /* 바운스 효과 제한 */
             -webkit-overflow-scrolling: touch; /* iOS 부드러운 스크롤 */
-            padding-bottom: 100px;
+            height: 350px;
         }
         .maintenance-card-overlay {
             position: absolute;
@@ -228,13 +358,13 @@
             z-index: 10;
         }
         .card-title {
-            font-size: 16px;
+            font-size: 14px;
             font-weight: bold;
-            color: #007bff;
+            color: #070707;
             margin-bottom: 10px;
         }
         .card-content {
-            font-size: 14px;
+            font-size: 12px;
             color: #333;
         }
         .maintenance-card {
@@ -245,6 +375,8 @@
             display: flex;
             flex-direction: column;
             position: relative;
+            min-height: 150px; /* ✅ 최소 높이 설정 */
+            height: auto; /* ✅ 높이를 내용따라 조정 */
         }
         .card-header {
             display: flex;
@@ -259,42 +391,105 @@
         }
         .card-body {
             margin-top: 10px;
+            flex-grow: 1; /* ✅ 카드 내용이 자동으로 동일한 높이를 유지하도록 설정 */
+            display: flex;
+            flex-direction: column;
         }
         .manager {
-            font-size: 20px;
+            font-size: 14px;
             font-weight: bold;
             color: #333;
             margin-bottom: 5px;
         }
         .manager-icon {
-            width: 20px;
-            height: 20px;
+            width: 50px;
+            height: 50px;
             margin-right: 5px;
+            border-radius: 25px;
         }
         .content {
-            font-size: 17px;
+            font-size: 12px;
             color: #666;
+        }
+        .menu {
+            max-width: 640px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            padding-top: 5px;
+            background-color: #ece7e78c;
+            border-radius: 10px;
+        }
+        .menu-icon {
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .menu-icon:hover {
+            transform: scale(1.1);
+        }
+        .menu-icon span {
+            font-size: 10px;
+            margin-top: 3px;
+            color: white
         }
     </style>
 </head>
 <body>
     <div class="container">
+        <div class="app-title"><span>MA집사</span>
+            <img id="searchIcon" src="public/검색.png" style="width: 30px; height: 30px; cursor: pointer;">
+        </div>
+        <div id="searchOverlay" class="search-overlay">
+            <div class="search-container">
+                <input type="text" id="searchInput" class="search-input" placeholder="검색어를 입력하세요">
+                <div id="searchResults" class="search-results"></div>
+                <button id="closeSearchBtn">닫기</button>
+            </div>
+        </div>
+
         <h1 id="clientHeader"></h1>
 
-        <div class="tab-container">
+        <!-- <div class="tab-container">
             <button class="tab active" id="viewTab" onclick="showMaintenanceView()">조회</button>
             <button class="tab" id="addTab" onclick="showMaintenanceAdd()">추가</button>
-        </div>
+        </div> -->
 
         <div class="business-card-container-wrapper">
             <div class="business-card-container" id="businessCards"></div>
         </div>
 
-        <div class="tabs" id="equipmentTabs"></div>
+        <div id="equipmentTabsContainer">
+            <div id="equipmentTabs" class="scroll-container">
+                <!-- 장비 버튼들이 동적으로 추가될 영역 -->
+            </div>
+        </div>
 
         <div class="maintenance-card-wrapper">
             <div class="maintenance-card-scroller" id="maintenanceCards"></div>
             <div class="maintenance-card-overlay"></div>
+        </div>
+
+        <div id="regularApplyContainer" style="display: none; width: 100%; max-width: 640px;">
+            <h2 style="text-align: center;">정기 점검</h2>
+            <div id="calendar" style="margin-bottom: 20px; background-color: white; padding: 10px; border-radius: 8px;"></div>
+            <div id="selectedDate" style="margin-bottom: 10px; font-weight: bold;"></div>
+            <button id="regularApplyBtn" style="display: block; width: 100%; padding: 12px; background-color: #007bff; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer;">신청하기</button>
+        </div>
+        
+        <div id="emergencyApplyContainer" style="display: none; width: 100%; max-width: 640px; ">
+            <h2 style="text-align: center;">비상 점검</h2>
+            <textarea id="emergencyContent" placeholder="필요 점검 내역을 작성해주세요." style="width: 100%; height: 150px; margin-bottom: 20px; padding: 10px; border-radius: 8px; resize: none;"></textarea>
+            <button id="emergencyApplyBtn" style="display: block; width: 100%; padding: 12px; background-color: #dc3545; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer;">신청하기</button>
+        </div>
+
+        <div class="menu">
+            <div id="menuIcons" class="menu-icon-container"></div>
         </div>
     </div>
 
@@ -311,13 +506,16 @@
                 if (!response.ok) throw new Error("데이터를 가져오는 데 실패했습니다.");
                 const clientData = await response.json();
 
-                document.getElementById("clientHeader").innerText = `${clientData.client_name}의 사업 현황`;
+                document.getElementById("clientHeader").innerHTML = `
+                <div style="display: flex; align-items: center;">
+                    <img src="public/sbs.png" alt="Logo" style="height: 70px; margin-right: 1px;">
+                    <span>${clientData.business_info.project_name}</span>
+                </div>
+                `;
 
                 createBusinessCards(clientData.business_info);
                 await loadMaintenanceData(loggedClient.id);
 
-                setupBusinessCardDragging();
-                setupMaintenanceCardScrolling();
             } catch (error) {
                 console.error("🚨 데이터 로드 중 오류 발생:", error);
             }
@@ -332,7 +530,7 @@
             let businessPeriod = `${startDate} ~ ${endDate}`;
 
             Object.entries(businessInfo).forEach(([key, value]) => {
-                if (key === "startDate" || key === "endDate") return;
+                if (key === "project_name" || key === "startDate" || key === "endDate") return;
                 
                 const card = document.createElement("div");
                 card.classList.add("business-card");
@@ -368,53 +566,21 @@
             return titles[key] || key;
         }
 
-        function setupBusinessCardDragging() {
-            const slider = document.getElementById("businessCards");
-            let isDown = false;
-            let startX;
-            let scrollLeft;
-
-            slider.addEventListener("mousedown", (e) => {
-                isDown = true;
-                slider.classList.add("active");
-                startX = e.pageX - slider.offsetLeft;
-                scrollLeft = slider.scrollLeft;
-            });
-
-            slider.addEventListener("mouseleave", () => {
-                isDown = false;
-                slider.classList.remove("active");
-            });
-
-            slider.addEventListener("mouseup", () => {
-                isDown = false;
-                slider.classList.remove("active");
-            });
-
-            slider.addEventListener("mousemove", (e) => {
-                if (!isDown) return;
-                e.preventDefault();
-                const x = e.pageX - slider.offsetLeft;
-                const walk = (x - startX) * 2;
-                slider.scrollLeft = scrollLeft - walk;
-            });
-
-            let touchStartX = 0;
-            slider.addEventListener("touchstart", (e) => {
-                touchStartX = e.touches[0].clientX;
-            });
-
-            slider.addEventListener("touchmove", (e) => {
-                const touchMoveX = e.touches[0].clientX;
-                const diff = touchStartX - touchMoveX;
-                slider.scrollLeft += diff;
-                touchStartX = touchMoveX;
-            });
-        }
-
         function setupMaintenanceCardScrolling() {
             const container = document.getElementById("maintenanceCards");
             const overlay = document.querySelector(".maintenance-card-overlay");
+
+            // 초기 스크롤 상태 확인
+            setTimeout(() => {
+                const scrollHeight = container.scrollHeight;
+                const containerHeight = container.clientHeight;
+
+                if (scrollHeight > containerHeight) {
+                    overlay.style.display = "block";
+                } else {
+                    overlay.style.display = "none";
+                }
+            }, 100);
 
             // 스크롤 이벤트 리스너 추가
             container.addEventListener("scroll", () => {
@@ -448,6 +614,9 @@
                 if (!response.ok) throw new Error("유지보수 정보를 불러오는 데 실패했습니다.");
                 const maintenanceData = await response.json();
 
+                // 유지보수 데이터를 localStorage에 저장
+                localStorage.setItem('maintenanceData', JSON.stringify(maintenanceData));
+
                 createEquipmentButtons(maintenanceData);
 
                 const firstEquipment = Object.keys(maintenanceData)[0];
@@ -463,34 +632,109 @@
             const tabsContainer = document.getElementById("equipmentTabs");
             tabsContainer.innerHTML = "";
 
-            Object.keys(maintenanceData).forEach(equipment => {
+            // 장비 데이터를 먼저 배열로 변환
+            const equipmentList = Object.entries(maintenanceData).map(([key, value]) => ({
+                key,
+                ...value
+            }));
+        
+            Object.entries(maintenanceData).forEach(([equipmentKey, equipmentData]) => {
+                if (!equipmentData || !equipmentData.name) {
+                    console.error(`⚠️ 장비 이름을 찾을 수 없음:`, equipmentKey, equipmentData);
+                    return;
+                }
+        
+                // ✅ 아이콘 경로 설정 (예: "서버 A" → "서버A.png")
+                const sanitizedName = equipmentData.name.replace(/\s+/g, ""); // 공백 제거
+                const imagePath = `/public/${sanitizedName}.png`;
+                const defaultImagePath = "/public/default.png"; // 기본 아이콘
+        
+                // ✅ 장비 버튼 생성
                 const button = document.createElement("button");
-                button.innerText = equipment;
                 button.classList.add("equipment-button");
-                button.onclick = () => showMaintenanceInfo(equipment, maintenanceData);
+                button.onclick = () => showMaintenanceInfo(equipmentKey, maintenanceData);
+        
+                button.innerHTML = `
+                    <img src="${imagePath}" onerror="this.onerror=null; this.src='${defaultImagePath}';">
+                    <span>${equipmentData.name}</span>
+                `;
+        
                 tabsContainer.appendChild(button);
+            });
+        
+            setupScrollDragging();
+        }
+        
+        // ✅ 스크롤을 드래그로 넘길 수 있도록 설정
+        function setupScrollDragging() {
+            const container = document.getElementById("equipmentTabs");
+            let isDown = false;
+            let startX;
+            let scrollLeft;
+        
+            container.addEventListener("mousedown", (e) => {
+                isDown = true;
+                startX = e.pageX - container.offsetLeft;
+                scrollLeft = container.scrollLeft;
+                container.style.cursor = "grabbing";
+            });
+        
+            container.addEventListener("mouseleave", () => {
+                isDown = false;
+                container.style.cursor = "grab";
+            });
+        
+            container.addEventListener("mouseup", () => {
+                isDown = false;
+                container.style.cursor = "grab";
+            });
+        
+            container.addEventListener("mousemove", (e) => {
+                if (!isDown) return;
+                e.preventDefault();
+                const x = e.pageX - container.offsetLeft;
+                const walk = (x - startX) * 2; // 스크롤 속도 조절
+                container.scrollLeft = scrollLeft - walk;
+            });
+        
+            // ✅ 모바일 터치 지원
+            let touchStartX = 0;
+            let touchScrollLeft = 0;
+        
+            container.addEventListener("touchstart", (e) => {
+                touchStartX = e.touches[0].pageX;
+                touchScrollLeft = container.scrollLeft;
+            });
+        
+            container.addEventListener("touchmove", (e) => {
+                const touchMoveX = e.touches[0].pageX;
+                const walk = (touchMoveX - touchStartX) * 2;
+                container.scrollLeft = touchScrollLeft - walk;
             });
         }
 
         function showMaintenanceInfo(equipment, maintenanceData) {
             const data = maintenanceData[equipment];
-            if (!data) return;
+            if (!data || !data.records) return;
             
             const container = document.getElementById("maintenanceCards");
             container.innerHTML = "";
 
             // 모든 데이터 추가
-            data.forEach(entry => {
+            data.records.forEach((entry,index) => {
                 const card = document.createElement("div");
                 card.classList.add("maintenance-card");
 
+                // ✅ 담당자 이름을 파일명으로 변환 (예: "김철수" → "김철수.jpg")
+                const sanitizedManager = entry.manager.replace(/\s+/g, ""); // 공백 제거
+                const imagePath = `/public/${sanitizedManager}.jpg`;
+                const defaultImagePath = "/public/mesa_logo.png"; // 기본 이미지
+
                 card.innerHTML = `
-                    <div class="card-header">
-                        <span class="date">${entry.date}</span>
-                    </div>
+                    <div class="card-header"><span class="date">${entry.date}</span></div>
                     <div class="card-body">
                         <div class="manager">
-                            <img src="/public/man.png" class="manager-icon">
+                            <img src="${imagePath}" class="manager-icon" onerror="this.onerror=null; this.src='${defaultImagePath}';">
                             ${entry.manager}
                         </div>
                         <div class="content">${entry.content}</div>
@@ -498,7 +742,15 @@
                 `;
 
                 container.appendChild(card);
+
+                // 마지막 카드인 경우 추가 처리
+                if (index === data.records.length - 1) {
+                    card.style.marginBottom = '100px'; // 마지막 카드 아래 여분의 공간 추가
+                }
             });
+
+            // 오버레이 처리
+            setupMaintenanceCardScrolling();
 
             /// 데이터 추가 후 스크롤 설정 다시 초기화
             setupMaintenanceCardScrolling();
@@ -520,6 +772,366 @@
             document.getElementById("addTab").classList.add("active");
             window.location.href = "modal.html";
         }
+
+        function addMenuIcons(icons = []) {
+            const container = document.getElementById("menuIcons");
+            container.innerHTML = ""; // 기존 아이콘 초기화
+            container.style.display = "flex";
+            container.style.justifyContent = "space-around";
+            container.style.alignItems = "center";
+            container.style.width = "100%";
+        
+            icons.forEach(iconConfig => {
+                const { 
+                    label, 
+                    onClick, 
+                    customIconPath 
+                } = iconConfig;
+        
+                const iconWrapper = document.createElement("div");
+                iconWrapper.style.display = "flex";
+                iconWrapper.style.flexDirection = "column";
+                iconWrapper.style.alignItems = "center";
+                iconWrapper.style.cursor = "pointer";
+                iconWrapper.style.padding = "5px";
+                iconWrapper.style.transition = "transform 0.2s ease";
+        
+                // 아이콘 이미지 생성
+                const iconImage = document.createElement("img");
+                iconImage.src = customIconPath;
+                iconImage.style.width = "30px";
+                iconImage.style.height = "30px";
+                iconImage.style.objectFit = "contain";
+        
+                // 레이블 생성
+                const labelElement = document.createElement("span");
+                labelElement.textContent = label;
+                labelElement.style.fontSize = "12px";
+                labelElement.style.marginTop = "5px";
+        
+                // 호버 효과 추가
+                iconWrapper.addEventListener("mouseenter", () => {
+                    iconWrapper.style.transform = "scale(1.1)";
+                });
+                iconWrapper.addEventListener("mouseleave", () => {
+                    iconWrapper.style.transform = "scale(1)";
+                });
+        
+                // 클릭 이벤트 추가
+                if (onClick) {
+                    iconWrapper.addEventListener("click", onClick);
+                }
+        
+                iconWrapper.appendChild(iconImage);
+                iconWrapper.appendChild(labelElement);
+                container.appendChild(iconWrapper);
+            });
+        }
+        
+        // DOMContentLoaded 이벤트에서 아이콘 추가
+        document.addEventListener("DOMContentLoaded", () => {
+                addMenuIcons([
+                    {
+                        label: "정기신청", 
+                customIconPath: "public/정기신청.png", 
+                onClick: () => {
+                    // 정기 신청 화면 표시
+                    document.getElementById("businessCards").style.display = "none";
+                    document.getElementById("equipmentTabsContainer").style.display = "none";
+                    document.getElementById("maintenanceCards").style.display = "none";
+                    document.querySelector(".maintenance-card-overlay").style.display = "none";
+                    document.getElementById("regularApplyContainer").style.display = "block";
+                    document.getElementById("emergencyApplyContainer").style.display = "none";
+                    
+                    // 달력 초기화
+                    initCalendar();
+                }
+            },
+            {
+                label: "비상신청", 
+                customIconPath: "public/비상신청.png", 
+                onClick: () => {
+                    // 비상 신청 화면 표시
+                    document.getElementById("businessCards").style.display = "none";
+                    document.getElementById("equipmentTabsContainer").style.display = "none";
+                    document.getElementById("maintenanceCards").style.display = "none";
+                    document.querySelector(".maintenance-card-overlay").style.display = "none";
+                    document.getElementById("regularApplyContainer").style.display = "none";
+                    document.getElementById("emergencyApplyContainer").style.display = "block";
+                }
+            },
+            {
+                label: "BI", 
+                customIconPath: "public/bi.png", 
+                onClick: () => {
+                    console.log("BI 클릭됨 - 현재 보류 중");
+                    // BI 기능은 보류
+                }
+            }
+        ]);
+
+        // 정기 신청 버튼 이벤트
+    document.getElementById("regularApplyBtn").addEventListener("click", () => {
+        const selectedDate = document.getElementById("selectedDate").textContent;
+        if (selectedDate) {
+            alert("정기 점검이 신청되었습니다: " + selectedDate);
+            showMainScreen();
+        } else {
+            alert("날짜를 선택해주세요.");
+        }
+    });
+
+    // 비상 신청 버튼 이벤트
+    document.getElementById("emergencyApplyBtn").addEventListener("click", () => {
+        const content = document.getElementById("emergencyContent").value;
+        if (content.trim() !== "") {
+            alert("비상 점검이 신청되었습니다.");
+            document.getElementById("emergencyContent").value = ""; // 입력 내용 초기화
+            showMainScreen();
+        } else {
+            alert("필요 점검 내역을 작성해주세요.");
+        }
+    });
+});
+
+// 메인 화면으로 돌아가는 함수
+function showMainScreen() {
+    document.getElementById("businessCards").style.display = "grid";
+    document.getElementById("equipmentTabsContainer").style.display = "block";
+    document.getElementById("maintenanceCards").style.display = "grid";
+    document.querySelector(".maintenance-card-overlay").style.display = "block";
+    document.getElementById("regularApplyContainer").style.display = "none";
+    document.getElementById("emergencyApplyContainer").style.display = "none";
+    
+    // 메인 화면의 스크롤 처리 재설정
+    setupMaintenanceCardScrolling();
+}
+
+// 간단한 달력 초기화 함수
+function initCalendar() {
+    const calendar = document.getElementById("calendar");
+    calendar.innerHTML = "";
+    
+    // 현재 날짜 정보
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth();
+    
+    // 달력 헤더
+    const header = document.createElement("div");
+    header.style.display = "flex";
+    header.style.justifyContent = "space-between";
+    header.style.marginBottom = "10px";
+    header.style.fontWeight = "bold";
+    
+    const monthTitle = document.createElement("div");
+    monthTitle.textContent = `${currentYear}년 ${currentMonth + 1}월`;
+    header.appendChild(monthTitle);
+    
+    calendar.appendChild(header);
+    
+    // 요일 헤더
+    const days = ["일", "월", "화", "수", "목", "금", "토"];
+    const daysHeader = document.createElement("div");
+    daysHeader.style.display = "grid";
+    daysHeader.style.gridTemplateColumns = "repeat(7, 1fr)";
+    daysHeader.style.textAlign = "center";
+    daysHeader.style.fontWeight = "bold";
+    daysHeader.style.marginBottom = "5px";
+    
+    days.forEach(day => {
+        const dayElement = document.createElement("div");
+        dayElement.textContent = day;
+        if (day === "일") dayElement.style.color = "red";
+        if (day === "토") dayElement.style.color = "blue";
+        daysHeader.appendChild(dayElement);
+    });
+    
+    calendar.appendChild(daysHeader);
+    
+    // 날짜 그리드
+    const dateGrid = document.createElement("div");
+    dateGrid.style.display = "grid";
+    dateGrid.style.gridTemplateColumns = "repeat(7, 1fr)";
+    dateGrid.style.gap = "5px";
+    
+    // 이번 달의 첫 날
+    const firstDay = new Date(currentYear, currentMonth, 1);
+    const firstDayIndex = firstDay.getDay();
+    
+    // 이번 달의 마지막 날
+    const lastDay = new Date(currentYear, currentMonth + 1, 0);
+    const lastDate = lastDay.getDate();
+    
+    // 이전 달의 마지막 날
+    const prevLastDay = new Date(currentYear, currentMonth, 0);
+    const prevLastDate = prevLastDay.getDate();
+    
+    // 이전 달의 날짜들
+    for (let i = firstDayIndex - 1; i >= 0; i--) {
+        const dayElement = document.createElement("div");
+        dayElement.textContent = prevLastDate - i;
+        dayElement.style.textAlign = "center";
+        dayElement.style.padding = "8px";
+        dayElement.style.color = "#aaa";
+        dateGrid.appendChild(dayElement);
+    }
+    
+    // 이번 달의 날짜들
+    for (let i = 1; i <= lastDate; i++) {
+        const dayElement = document.createElement("div");
+        dayElement.textContent = i;
+        dayElement.style.textAlign = "center";
+        dayElement.style.padding = "8px";
+        dayElement.style.cursor = "pointer";
+        dayElement.style.borderRadius = "50%";
+        
+        // 오늘 날짜 표시
+        if (i === now.getDate() && currentMonth === now.getMonth() && currentYear === now.getFullYear()) {
+            dayElement.style.backgroundColor = "#e6f2ff";
+            dayElement.style.fontWeight = "bold";
+        }
+        
+        // 주말 색상
+        const dayOfWeek = new Date(currentYear, currentMonth, i).getDay();
+        if (dayOfWeek === 0) dayElement.style.color = "red";
+        if (dayOfWeek === 6) dayElement.style.color = "blue";
+        
+        // 날짜 클릭 이벤트
+        dayElement.addEventListener("click", () => {
+            // 이전에 선택된 날짜의 스타일 초기화
+            document.querySelectorAll("#calendar > div:nth-child(3) > div").forEach(el => {
+                el.style.backgroundColor = "";
+                
+                // 오늘 날짜 스타일 유지
+                if (el.textContent == now.getDate() && currentMonth === now.getMonth() && currentYear === now.getFullYear()) {
+                    el.style.backgroundColor = "#e6f2ff";
+                }
+            });
+            
+            // 선택된 날짜 스타일 적용
+            dayElement.style.backgroundColor = "#007bff";
+            dayElement.style.color = "";
+            
+            // 선택된 날짜 표시
+            document.getElementById("selectedDate").textContent = `선택된 날짜: ${currentYear}년 ${currentMonth + 1}월 ${i}일`;
+        });
+        
+        dateGrid.appendChild(dayElement);
+    }
+    
+    // 다음 달의 날짜들
+    const daysAfter = 42 - (firstDayIndex + lastDate);
+    for (let i = 1; i <= daysAfter; i++) {
+        const dayElement = document.createElement("div");
+        dayElement.textContent = i;
+        dayElement.style.textAlign = "center";
+        dayElement.style.padding = "8px";
+        dayElement.style.color = "#aaa";
+        dateGrid.appendChild(dayElement);
+    }
+    
+    calendar.appendChild(dateGrid);
+}
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const searchIcon = document.getElementById('searchIcon');
+            const searchOverlay = document.getElementById('searchOverlay');
+            const searchInput = document.getElementById('searchInput');
+            const searchResults = document.getElementById('searchResults');
+            const closeSearchBtn = document.getElementById('closeSearchBtn');
+
+            // 검색 아이콘 클릭 시 오버레이 표시
+            searchIcon.addEventListener('click', () => {
+                searchOverlay.style.display = 'flex';
+                searchInput.focus();
+            });
+
+            // 닫기 버튼 클릭 시 오버레이 숨기기
+            closeSearchBtn.addEventListener('click', () => {
+                searchOverlay.style.display = 'none';
+                searchResults.innerHTML = ''; // 검색 결과 초기화
+            });
+
+            // 검색 입력 이벤트 리스너
+            searchInput.addEventListener('input', () => {
+                const searchTerm = searchInput.value.toLowerCase().trim();
+                
+                // 전체 데이터 검색 함수
+                function searchAllData(searchTerm) {
+                    const results = [];
+                    
+                    // 비즈니스 정보 검색
+                    const businessInfo = JSON.parse(localStorage.getItem('loggedClient'))?.business_info || {};
+                    Object.entries(businessInfo).forEach(([key, value]) => {
+                        if (typeof value === 'string' && value.toLowerCase().includes(searchTerm)) {
+                            results.push({
+                                type: '사업 정보',
+                                key: convertKeyToTitle(key),
+                                value: value
+                            });
+                        }
+                    });
+
+                    // 유지보수 데이터 검색
+                    const maintenanceData = JSON.parse(localStorage.getItem('maintenanceData')) || {};
+                    Object.entries(maintenanceData).forEach(([equipmentKey, equipmentData]) => {
+                        // 장비 이름 검색
+                        if (equipmentData.name.toLowerCase().includes(searchTerm)) {
+                            results.push({
+                                type: '장비',
+                                key: '장비 이름',
+                                value: equipmentData.name
+                            });
+                        }
+
+                        // 유지보수 기록 검색
+                        if (equipmentData.records) {
+                            equipmentData.records.forEach(record => {
+                                if (
+                                    record.manager.toLowerCase().includes(searchTerm) ||
+                                    record.content.toLowerCase().includes(searchTerm) ||
+                                    record.date.toLowerCase().includes(searchTerm)
+                                ) {
+                                    results.push({
+                                        type: '유지보수 기록',
+                                        key: `${equipmentData.name} - ${record.date}`,
+                                        value: record.content
+                                    });
+                                }
+                            });
+                        }
+                    });
+
+                    return results;
+                }
+
+                // 검색어가 있을 때만 검색 수행
+                if (searchTerm) {
+                    const searchResults = searchAllData(searchTerm);
+                    
+                    // 결과 표시
+                    const resultsContainer = document.getElementById('searchResults');
+                    resultsContainer.innerHTML = ''; // 기존 결과 초기화
+
+                    if (searchResults.length > 0) {
+                        searchResults.forEach(result => {
+                            const resultItem = document.createElement('div');
+                            resultItem.classList.add('search-result-item');
+                            resultItem.innerHTML = `
+                                <strong>${result.type} - ${result.key}</strong>
+                                <p>${result.value}</p>
+                            `;
+                            resultsContainer.appendChild(resultItem);
+                        });
+                    } else {
+                        resultsContainer.innerHTML = '<p>검색 결과가 없습니다.</p>';
+                    }
+                } else {
+                    searchResults.innerHTML = ''; // 검색어 없을 때 결과 초기화
+                }
+            })
+        })
     </script>
 </body>
 </html>
