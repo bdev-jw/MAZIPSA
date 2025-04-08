@@ -26,45 +26,40 @@
             background-color: #f8f9fa; /* 배경색 (선택 사항) */
             border-bottom: 2px solid #ddd; /* 구분선 추가 */
         }
-        .search-overlay {
+        .search-container-inline {
             display: none;
-            position: fixed;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
+            margin-left: 10px;
+            transition: all 0.3s;
+            position: relative; /* 이벤트 버블링에서 검색창 클릭을 구분하기 위해 추가 */
         }
-        .search-container {
-            background-color: rgb(245, 245, 245);
-            width: 100%; /* 화면 너비의 90%로 조정 */
-            max-width: 500px;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            display: flex;
-            flex-direction: column;
-            height: 70%; /* 화면 높이의 70%로 조정 */
-        }
-        .search-input {
-            width: 100%;
-            max-width: 500px;
-            padding-top: 5px;
-            padding-bottom: 5px;
-            margin-bottom: 5px;
+        
+        .search-input-inline {
+            width: 0;
+            padding: 5px;
             border-radius: 5px;
+            border: 1px solid #ccc;
+            transition: width 0.3s;
         }
-        .search-results {
-            width: 100%;
-            flex-grow: 1;
-            overflow-y: auto;
-            margin-bottom: 10px;
+        
+        .search-input-inline.active {
+            width: 200px;
         }
+        
         #searchIcon {
             width: 30px;
             height: 30px;
             cursor: pointer;
+        }
+        #clearSearchBtn {
+            display: none;
+            margin-left: 8px;
+            cursor: pointer;
+            color: #666;
+            background: #eee;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            padding: 2px 5px;
+            font-size: 12px;
         }
         .container {
             display: flex;
@@ -492,16 +487,15 @@
 <body>
     <div class="container">
         <div class="app-title"><span>MA집사</span>
-            <img id="searchIcon" src="public/검색.png" style="width: 30px; height: 30px; cursor: pointer;">
-        </div>
-        <div id="searchOverlay" class="search-overlay">
-            <div class="search-container">
-                <input type="text" id="searchInput" class="search-input" placeholder="검색어를 입력하세요">
-                <div id="searchResults" class="search-results"></div>
-                <button id="closeSearchBtn">닫기</button>
+            <div style="display: flex; align-items: center;">
+                <div id="searchContainerInline" class="search-container-inline">
+                    <input type="text" id="searchInputInline" class="search-input-inline" placeholder="검색어를 입력하세요">
+                    <button id="clearSearchBtn">초기화</button>
+                </div>
+                <img id="searchIcon" src="public/검색.png" style="width: 30px; height: 30px; cursor: pointer;">
             </div>
         </div>
-
+            
         <h1 id="clientHeader"></h1>
 
         <!-- <div class="tab-container">
@@ -1485,7 +1479,250 @@ function initCalendar() {
         renderCalendar();
         }
 
+        // HTML이 완전히 로드된 후 실행
+document.addEventListener('DOMContentLoaded', function() {
+    console.log("DOM 로딩 완료");
+    
+    // 요소 선택
+    const searchIcon = document.getElementById('searchIcon');
+    const searchContainerInline = document.getElementById('searchContainerInline');
+    const searchInputInline = document.getElementById('searchInputInline');
+    const clearSearchBtn = document.getElementById('clearSearchBtn');
+    
+    // 요소가 존재하는지 콘솔에 출력해 디버깅
+    console.log("검색 아이콘:", searchIcon);
+    console.log("검색 컨테이너:", searchContainerInline);
+    console.log("검색 입력창:", searchInputInline);
+    
+    // 검색 아이콘 클릭 이벤트
+    searchIcon.addEventListener('click', function(event) {
+        console.log("검색 아이콘 클릭됨");
+        event.stopPropagation(); // 이벤트 버블링 방지
+        
+        // 검색창 표시
+        searchIcon.style.display = 'none';
+        searchContainerInline.style.display = 'flex';
+        
+        // 검색창 애니메이션 적용 및 포커스
+        setTimeout(function() {
+            searchInputInline.classList.add('active');
+            searchInputInline.focus();
+        }, 10);
+    });
+    
+    // 검색창 클릭 시 이벤트 버블링 방지
+    searchContainerInline.addEventListener('click', function(event) {
+        event.stopPropagation();
+    });
+    
+    // 문서 전체 클릭 시 검색창 닫기
+    document.addEventListener('click', function() {
+        if (searchContainerInline.style.display === 'flex') {
+            closeSearch();
+        }
+    });
+    
+    // 초기화 버튼 클릭 이벤트
+    clearSearchBtn.addEventListener('click', function(event) {
+        event.stopPropagation(); // 이벤트 버블링 방지
+        resetMaintenanceDisplay();
+    });
+    
+    // 검색창 닫기 함수
+    function closeSearch() {
+        console.log("검색창 닫기");
+        searchInputInline.classList.remove('active');
+        
+        // 애니메이션 완료 후 요소 숨기기
+        setTimeout(function() {
+            searchContainerInline.style.display = 'none';
+            searchIcon.style.display = 'block';
+            clearSearchBtn.style.display = 'none';
+        }, 200);
+        
+        // 검색어 초기화 및 원래 화면으로 복원
+        searchInputInline.value = '';
+        resetMaintenanceDisplay();
+    }
+    
+    // 검색 입력 이벤트
+    searchInputInline.addEventListener('input', function(event) {
+        event.stopPropagation();
+        const searchTerm = searchInputInline.value.toLowerCase().trim();
+        
+        console.log("검색어:", searchTerm);
+        
+        // 검색어가 있을 때만 검색 수행 및 초기화 버튼 표시
+        if (searchTerm) {
+            const searchResults = searchMaintenanceData(searchTerm);
+            renderFilteredMaintenanceData(searchResults);
+            clearSearchBtn.style.display = 'block';
+        } else {
+            // 검색어가 없으면 원래 화면으로 복원
+            resetMaintenanceDisplay();
+            clearSearchBtn.style.display = 'none';
+        }
+    });
+    
+    // ESC 키 누르면 검색창 닫기
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape' && searchContainerInline.style.display === 'flex') {
+            closeSearch();
+        }
+    });
+    
+    // 유지보수 데이터만 검색하는 함수
+    function searchMaintenanceData(searchTerm) {
+        const results = [];
+        
+        try {
+            // 유지보수 데이터 검색
+            const maintenanceData = JSON.parse(localStorage.getItem('maintenanceData')) || {};
+            
+            Object.entries(maintenanceData).forEach(([equipmentKey, equipmentData]) => {
+                // 유지보수 기록 검색
+                if (equipmentData.records) {
+                    const matchingRecords = equipmentData.records.filter(record => 
+                        record.manager?.toLowerCase().includes(searchTerm) ||
+                        record.content?.toLowerCase().includes(searchTerm) ||
+                        record.date?.toLowerCase().includes(searchTerm)
+                    );
+                    
+                    if (matchingRecords.length > 0) {
+                        results.push({
+                            equipmentName: equipmentData.name,
+                            records: matchingRecords
+                        });
+                    }
+                }
+            });
+        } catch (error) {
+            console.error("검색 중 오류 발생:", error);
+        }
+
+        return results;
+    }
+    
+    // 검색 결과로 필터링된 유지보수 데이터만 렌더링
+    function renderFilteredMaintenanceData(results) {
+        try {
+            // 유지보수 카드 컨테이너만 비우기
+            const maintenanceCardsContainer = document.getElementById('maintenanceCards');
+            if (maintenanceCardsContainer) {
+                maintenanceCardsContainer.innerHTML = '';
+                
+                if (results.length === 0) {
+                    // 검색 결과가 없을 때 메시지 표시
+                    const noResultsMsg = document.createElement('div');
+                    noResultsMsg.className = 'no-results-message';
+                    noResultsMsg.textContent = '검색 결과가 없습니다.';
+                    maintenanceCardsContainer.appendChild(noResultsMsg);
+                } else {
+                    // 검색 결과 표시
+                    results.forEach(equipment => {
+                        equipment.records.forEach(record => {
+                            const card = document.createElement('div');
+                            card.className = 'maintenance-card search-result';
+                            card.innerHTML = `
+                                <h4>${equipment.equipmentName} - ${record.date}</h4>
+                                <p>담당자: ${record.manager}</p>
+                                <p>${record.content}</p>
+                            `;
+                            maintenanceCardsContainer.appendChild(card);
+                        });
+                    });
+                }
+            } else {
+                console.error("maintenanceCards 요소를 찾을 수 없습니다.");
+            }
+        } catch (error) {
+            console.error("필터링된 데이터 렌더링 중 오류 발생:", error);
+        }
+    }
+    
+    // 유지보수 표시 초기화 (원래 화면으로 돌아가기)
+    function resetMaintenanceDisplay() {
+        try {
+            // maintenanceCards 요소 찾기
+            const maintenanceCardsContainer = document.getElementById('maintenanceCards');
+            if (!maintenanceCardsContainer) {
+                console.error("maintenanceCards 요소를 찾을 수 없습니다.");
+                return;
+            }
+            
+            // 선택된 장비 정보 가져오기
+            const selectedEquipment = localStorage.getItem('selectedEquipment');
+            if (!selectedEquipment) {
+                console.warn("선택된 장비 정보가 없습니다.");
+                maintenanceCardsContainer.innerHTML = '<div class="no-results-message">선택된 장비가 없습니다.</div>';
+                return;
+            }
+            
+            // 유지보수 데이터 가져오기
+            const maintenanceData = JSON.parse(localStorage.getItem('maintenanceData')) || {};
+            const equipmentData = maintenanceData[selectedEquipment];
+            
+            if (!equipmentData || !equipmentData.records || equipmentData.records.length === 0) {
+                maintenanceCardsContainer.innerHTML = '<div class="no-results-message">유지보수 기록이 없습니다.</div>';
+                return;
+            }
+            
+            // 컨테이너 비우기
+            maintenanceCardsContainer.innerHTML = '';
+            
+            // 기록 렌더링
+            equipmentData.records.forEach(record => {
+                const card = document.createElement('div');
+                card.className = 'maintenance-card';
+                card.innerHTML = `
+                    <h4>${record.date}</h4>
+                    <p>담당자: ${record.manager}</p>
+                    <p>${record.content}</p>
+                `;
+                maintenanceCardsContainer.appendChild(card);
+            });
+        } catch (error) {
+            console.error("유지보수 표시 초기화 중 오류 발생:", error);
+        }
+    }
+});
+
+        /*
+
         document.addEventListener('DOMContentLoaded', () => {
+
+            // 메인화면 안건들고 검색되도록 반영 시작 부분
+            function renderAllData() {
+                renderBusinessInfo();
+                renderEquipmentTabs();
+                renderMaintenanceCards();
+            }
+            
+            function renderFilteredData(results) {
+                document.getElementById('businessCards').innerHTML = '';
+                document.getElementById('equipmentTabs').innerHTML = '';
+                document.getElementById('maintenanceCards').innerHTML = '';
+            
+                results.forEach(result => {
+                    if (result.type === '사업 정보') {
+                        const card = document.createElement('div');
+                        card.className = 'business-card';
+                        card.innerHTML = `<h3>${result.key}</h3><p>${result.value}</p>`;
+                        document.getElementById('businessCards').appendChild(card);
+                    } else if (result.type === '장비') {
+                        const tab = document.createElement('button');
+                        tab.className = 'equipment-tab';
+                        tab.textContent = result.value;
+                        document.getElementById('equipmentTabs').appendChild(tab);
+                    } else if (result.type === '유지보수 기록') {
+                        const card = document.createElement('div');
+                        card.className = 'maintenance-card';
+                        card.innerHTML = `<h4>${result.key}</h4><p>${result.value}</p>`;
+                        document.getElementById('maintenanceCards').appendChild(card);
+                    }
+                });
+            }
+
             const searchIcon = document.getElementById('searchIcon');
             const searchOverlay = document.getElementById('searchOverlay');
             const searchInput = document.getElementById('searchInput');
@@ -1582,7 +1819,7 @@ function initCalendar() {
                     searchResults.innerHTML = ''; // 검색어 없을 때 결과 초기화
                 }
             })
-        })
+        }) */
     </script>
 </body>
 </html>
