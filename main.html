@@ -124,7 +124,7 @@
             background-color: rgba(44, 20, 197, 0.5);
         }
         .active {
-            background-color: rgba(123, 175, 26, 0.5);
+            background-color: rgba(231, 231, 231, 0.5);
         } 
         table {
             width: 100%;
@@ -412,36 +412,60 @@
         .menu {
             max-width: 640px;
             display: flex;
-            justify-content: space-around;
-            align-items: center;
-            text-align: center;
-            font-size: 24px;
-            font-weight: bold;
+            justify-content: center; /* 중앙 정렬 */
             padding: 5px 0;
             background-color: #ece7e78c;
             border-radius: 10px;
-            position: fixed; /* 메뉴를 고정 */
-            bottom: 0; /* 화면 하단에 고정 */
-            left: 50%; /* 가운데 정렬을 위해 */
-            transform: translateX(-50%); /* 가운데 정렬 완성 */
-            z-index: 10; /* 메뉴를 항상 위에 표시 */
-            width: 100%; /* 너비 100%로 설정 */
-        }
-        .menu-icon {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            width: 100%;
+          }
+          
+          .menu-icon-container {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            max-width: 400px; /* 아이콘 전체 너비 제한 */
+            padding: 0 20px;
+          }
+          
+          .menu-icon {
+            position: relative;
             cursor: pointer;
             transition: transform 0.2s ease;
             display: flex;
             flex-direction: column;
             align-items: center;
-        }
-        .menu-icon:hover {
+          }
+          
+          .menu-icon:hover {
             transform: scale(1.1);
-        }
-        .menu-icon span {
-            font-size: 10px;
+          }
+          
+          .menu-icon span {
+            font-size: 12px;
+            font-weight: bolder;
             margin-top: 3px;
-            color: white
-        }
+            color: rgb(0, 0, 0);
+          }
+          .badge {
+            position: absolute;
+            top: -4px;       /* 아이콘 위로 조금 올라오도록 */
+            right: -4px;     /* 아이콘 오른쪽으로 약간 나가도록 */
+            color: white;
+            border-radius: 50%;
+            padding: 1px 4px;
+            font-size: 8px !important;      /* ← 상속/우선순위 무시 */
+            font-weight: bold;
+            font-family: sans-serif;        /* 폰트 직접 설정 */
+            z-index: 2;
+            min-width: 18px;
+            text-align: center;
+            line-height: 1;
+          }
 
         /* 모달 배경 스타일 */
         .modal-backdrop {
@@ -519,7 +543,7 @@
         </div>
 
         <div class="menu">
-            <div id="menuIcons" class="menu-icon-container"></div>
+            <div id="menuIcons"  class="menu-icon-container"></div>
         </div>
 
         <!-- 모달 배경 요소 추가 -->
@@ -881,42 +905,72 @@
         }
         
         // DOMContentLoaded 이벤트에서 아이콘 추가
-        document.addEventListener("DOMContentLoaded", () => {
-                addMenuIcons([
-                    {
-                        label: "정기신청", 
-                customIconPath: "public/정기신청.png", 
-                onClick: () => {
-                    // 정기 신청 모달 표시
+document.addEventListener("DOMContentLoaded", () => {
+    // 정기 신청 내역과 비상 신청 내역을 저장할 배열 초기화
+    window.regularApplications = [];
+    window.emergencyApplications = [];
+    
+    addMenuIcons([
+        {
+            id:"regularIcon", // id추가
+            label: "정기신청", 
+            customIconPath: "public/정기신청.png", 
+            onClick: () => {
+                // 정기 신청 모달 표시
                 document.getElementById("modalBackdrop").style.display = "block";
                 document.getElementById("regularApplyContainer").style.display = "block";
                 document.getElementById("emergencyApplyContainer").style.display = "none";       
-                    
-                    // 달력 초기화
-                    initCalendar();
-                }
-            },
-            {
-                label: "비상신청", 
-                customIconPath: "public/비상신청.png", 
-                onClick: () => {
-                    // 비상 신청 모달 표시
+                
+                // 달력 초기화
+                initCalendar();
+            }
+        },
+        {
+            id:"emergencyIcon", // id 추가
+            label: "비상신청", 
+            customIconPath: "public/비상신청.png", 
+            onClick: () => {
+                // 비상 신청 모달 표시
                 document.getElementById("modalBackdrop").style.display = "block";
                 document.getElementById("regularApplyContainer").style.display = "none";
                 document.getElementById("emergencyApplyContainer").style.display = "block";
-                }
-            },
-            {
-                label: "BI", 
-                customIconPath: "public/bi.png", 
-                onClick: () => {
-                    console.log("BI 클릭됨 - 현재 보류 중");
-                    // BI 기능은 보류
-                }
+                
+                // 비상 신청 7일 달력 초기화
+                initEmergencyCalendar();
             }
-        ]);
+        },
+        {
+            label: "BI", 
+            customIconPath: "public/bi.png", 
+            onClick: () => {
+                console.log("BI 클릭됨 - 현재 보류 중");
+                // BI 기능은 보류
+            }
+        }
+    ], () => {
 
-        // 모달 배경 클릭 시 모달 닫기
+        if (!document.getElementById('regularIcon')) {
+            console.warn('regularIcon이 존재하지 않아 수동 생성합니다.');
+            const el = document.createElement('div');
+            el.id = 'regularIcon';
+            el.className = 'menu-icon';
+            document.body.appendChild(el);
+        }
+    
+        if (!document.getElementById('emergencyIcon')) {
+            console.warn('emergencyIcon이 존재하지 않아 수동 생성합니다.');
+            const el = document.createElement('div');
+            el.id = 'emergencyIcon';
+            el.className = 'menu-icon';
+            document.body.appendChild(el);
+        }
+
+        // ✅ 아이콘이 실제로 추가된 이후에 badge 업데이트
+        updateRegularBadge();
+        updateEmergencyBadge();
+    });
+
+    // 모달 배경 클릭 시 모달 닫기
     document.getElementById("modalBackdrop").addEventListener("click", closeModals);
     
     // 모달 닫기 버튼 클릭 시 모달 닫기
@@ -924,234 +978,368 @@
         button.addEventListener("click", closeModals);
     });
 
-    // 정기 신청 내역과 비상 신청 내역을 저장할 배열 초기화
-    window.regularApplications = [];
-    window.emergencyApplications = [];
-
     // 내역을 보여줄 컨테이너 요소 생성 및 추가
     createApplicationHistoryContainers();
 
-        // 정기 신청 버튼 이벤트
+    // 정기 신청 버튼 이벤트
     document.getElementById("regularApplyBtn").addEventListener("click", () => {
-        const selectedDate = document.getElementById("selectedDate").textContent;
+        const selectedDates = document.getElementById("selectedDate").getAttribute("data-dates");
         const content = document.getElementById("regularContent").value;
         
-        if (selectedDate && selectedDate !== "날짜를 선택해주세요" && content.trim() !== "") {
+        if (selectedDates && selectedDates !== "" && content.trim() !== "") {
             // 신청 내역 저장
-            addRegularApplication(selectedDate, content);
+            const datesArray = JSON.parse(selectedDates);
+            addRegularApplication(datesArray, content);
             
-            alert("정기 점검이 신청되었습니다: " + selectedDate);
+            alert("정기 점검이 신청되었습니다: " + datesArray.join(", "));
             document.getElementById("regularContent").value = "";
             showMainScreen();
-        } else if (selectedDate === "날짜를 선택해주세요") {
+            
+            // 정기 신청 아이콘에 뱃지 업데이트
+            updateRegularBadge();
+        } else if (!selectedDates || selectedDates === "") {
             alert("날짜를 선택해주세요");
         } else {
             alert("필요 점검 내역을 작성해주세요");
         }
         
         // 모달과 배경 닫기
-    closeModals();
+        closeModals();
     });
 
     // 비상 신청 버튼 이벤트
     document.getElementById("emergencyApplyBtn").addEventListener("click", () => {
         const content = document.getElementById("emergencyContent").value;
+        const selectedEmergencyDate = document.getElementById("selectedEmergencyDate").textContent !== "날짜를 선택해주세요" 
+            ? document.getElementById("selectedEmergencyDate").textContent 
+            : new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
+            
         if (content.trim() !== "") {
-
-            addEmergencyApplication(content);
+            addEmergencyApplication(selectedEmergencyDate, content);
             alert("비상 점검이 신청되었습니다.");
             document.getElementById("emergencyContent").value = ""; // 입력 내용 초기화
             showMainScreen();
+            
+            // 비상 신청 아이콘에 뱃지 업데이트
+            updateEmergencyBadge();
         } else {
             alert("필요 점검 내역을 작성해주세요.");
         }
 
         // 모달과 배경 닫기
-    closeModals();
+        closeModals();
     });
 });
 
-    // 내역을 보여줄 컨테이너 요소 생성 및 추가 함수
-    function createApplicationHistoryContainers() {
-        // 정기 신청 내역 컨테이너
-        const regularHistoryContainer = document.createElement("div");
-        regularHistoryContainer.id = "regularHistoryContainer";
-        regularHistoryContainer.style.marginTop = "20px";
-        regularHistoryContainer.style.maxHeight = "300px";
-        regularHistoryContainer.style.overflowY = "auto";
-        regularHistoryContainer.style.border = "1px solid #eee";
-        regularHistoryContainer.style.borderRadius = "8px";
-        regularHistoryContainer.style.padding = "10px";
-        
-        const regularHistoryTitle = document.createElement("h3");
-        regularHistoryTitle.textContent = "정기 신청 내역";
-        regularHistoryTitle.style.marginBottom = "10px";
-        regularHistoryTitle.style.fontSize = "16px";
-        regularHistoryTitle.style.fontWeight = "bold";
-        
-        const regularHistoryList = document.createElement("div");
-        regularHistoryList.id = "regularHistoryList";
-        
-        regularHistoryContainer.appendChild(regularHistoryTitle);
-        regularHistoryContainer.appendChild(regularHistoryList);
-        
-        // 정기 신청 버튼 아래에 추가
-        const regularApplyBtn = document.getElementById("regularApplyBtn");
-        regularApplyBtn.parentNode.insertBefore(regularHistoryContainer, regularApplyBtn.nextSibling);
-        
-        // 비상 신청 내역 컨테이너
-        const emergencyHistoryContainer = document.createElement("div");
-        emergencyHistoryContainer.id = "emergencyHistoryContainer";
-        emergencyHistoryContainer.style.marginTop = "20px";
-        emergencyHistoryContainer.style.maxHeight = "300px";
-        emergencyHistoryContainer.style.overflowY = "auto";
-        emergencyHistoryContainer.style.border = "1px solid #eee";
-        emergencyHistoryContainer.style.borderRadius = "8px";
-        emergencyHistoryContainer.style.padding = "10px";
-        
-        const emergencyHistoryTitle = document.createElement("h3");
-        emergencyHistoryTitle.textContent = "비상 신청 내역";
-        emergencyHistoryTitle.style.marginBottom = "10px";
-        emergencyHistoryTitle.style.fontSize = "16px";
-        emergencyHistoryTitle.style.fontWeight = "bold";
-        
-        const emergencyHistoryList = document.createElement("div");
-        emergencyHistoryList.id = "emergencyHistoryList";
-        
-        emergencyHistoryContainer.appendChild(emergencyHistoryTitle);
-        emergencyHistoryContainer.appendChild(emergencyHistoryList);
-        
-        // 비상 신청 버튼 아래에 추가
-        const emergencyApplyBtn = document.getElementById("emergencyApplyBtn");
-        emergencyApplyBtn.parentNode.insertBefore(emergencyHistoryContainer, emergencyApplyBtn.nextSibling);
-    }
+// 기존 함수가 없을 경우만 저장
+if (typeof window._originalAddMenuIcons !== 'function') {
+    window._originalAddMenuIcons = window.addMenuIcons;
+}
 
-    // 정기 신청 내역 추가 함수
-    function addRegularApplication(date, content) {
-        // 최대 10개만 저장
-        if (window.regularApplications.length >= 10) {
-            window.regularApplications.shift(); // 가장 오래된 항목 제거
-        }
-        
-        // 신청 내역 객체 생성 및 배열에 추가
-        const application = {
-            date: date,
-            content: content,
-            timestamp: new Date().toISOString()
-        };
-        
-        window.regularApplications.push(application);
-        
-        // 화면에 내역 표시
-        updateRegularApplicationList();
-    }
+// 새롭게 정의된 addMenuIcons
+window.addMenuIcons = function (icons, callback) {
+    const existingFunction = window._originalAddMenuIcons;
 
-    // 비상 신청 내역 추가 함수
-    function addEmergencyApplication(time, content) {
-        // 최대 10개만 저장
-        if (window.emergencyApplications.length >= 10) {
-            window.emergencyApplications.shift(); // 가장 오래된 항목 제거
-        }
-        
-        // 신청 내역 객체 생성 및 배열에 추가
-        const application = {
-            time: time,
-            content: content,
-            timestamp: new Date().toISOString()
-        };
-        
-        window.emergencyApplications.push(application);
-        
-        // 화면에 내역 표시
-        updateEmergencyApplicationList();
-    }
-
-    // 정기 신청 내역 리스트 업데이트 함수
-    function updateRegularApplicationList() {
-        const container = document.getElementById("regularHistoryList");
-        container.innerHTML = "";
-        
-        if (window.regularApplications.length === 0) {
-            const emptyMessage = document.createElement("p");
-            emptyMessage.textContent = "신청 내역이 없습니다.";
-            emptyMessage.style.color = "#999";
-            emptyMessage.style.textAlign = "center";
-            emptyMessage.style.padding = "10px";
-            container.appendChild(emptyMessage);
-            return;
-        }
-        
-        // 최신 항목이 맨 위에 오도록 역순으로 표시
-        window.regularApplications.slice().reverse().forEach((app, index) => {
-            const item = document.createElement("div");
-            item.className = "history-item";
-            item.style.padding = "10px";
-            item.style.borderBottom = index < window.regularApplications.length - 1 ? "1px solid #eee" : "none";
-            item.style.marginBottom = "5px";
-            
-            const dateElement = document.createElement("div");
-            dateElement.className = "history-date";
-            dateElement.textContent = app.date;
-            dateElement.style.fontWeight = "bold";
-            dateElement.style.marginBottom = "5px";
-            
-            const contentElement = document.createElement("div");
-            contentElement.className = "history-content";
-            contentElement.textContent = app.content;
-            contentElement.style.color = "#666";
-            
-            item.appendChild(dateElement);
-            item.appendChild(contentElement);
-            container.appendChild(item);
+    if (typeof existingFunction === 'function') {
+        const modifiedIcons = icons.map(icon => {
+            if (icon.id) {
+                icon._id = icon.id;
+            }
+            return icon;
         });
-    }
 
-    // 비상 신청 내역 리스트 업데이트 함수
-    function updateEmergencyApplicationList() {
-        const container = document.getElementById("emergencyHistoryList");
-        container.innerHTML = "";
-        
-        if (window.emergencyApplications.length === 0) {
-            const emptyMessage = document.createElement("p");
-            emptyMessage.textContent = "신청 내역이 없습니다.";
-            emptyMessage.style.color = "#999";
-            emptyMessage.style.textAlign = "center";
-            emptyMessage.style.padding = "10px";
-            container.appendChild(emptyMessage);
-            return;
-        }
-        
-        // 최신 항목이 맨 위에 오도록 역순으로 표시
-        window.emergencyApplications.slice().reverse().forEach((app, index) => {
-            const item = document.createElement("div");
-            item.className = "history-item";
-            item.style.padding = "10px";
-            item.style.borderBottom = index < window.emergencyApplications.length - 1 ? "1px solid #eee" : "none";
-            item.style.marginBottom = "5px";
-            
-            const timeElement = document.createElement("div");
-            timeElement.className = "history-time";
-            timeElement.textContent = app.time;
-            timeElement.style.fontWeight = "bold";
-            timeElement.style.marginBottom = "5px";
-            
-            const contentElement = document.createElement("div");
-            contentElement.className = "history-content";
-            contentElement.textContent = app.content;
-            contentElement.style.color = "#666";
-            
-            item.appendChild(timeElement);
-            item.appendChild(contentElement);
-            container.appendChild(item);
-        });
-    }
+        existingFunction(modifiedIcons);
 
-    // 모달 닫기 함수
-    function closeModals() {
-        document.getElementById("modalBackdrop").style.display = "none";
-        document.getElementById("regularApplyContainer").style.display = "none";
-        document.getElementById("emergencyApplyContainer").style.display = "none";
+        // DOM 업데이트를 보장한 후
+        setTimeout(() => {
+            const menuIcons = document.querySelectorAll('.menu-icon');
+            modifiedIcons.forEach((icon, index) => {
+                if (icon._id && index < menuIcons.length) {
+                    menuIcons[index].id = icon._id;
+                    menuIcons[index].style.position = 'relative';
+                }
+            });
+
+            // ✅ 콜백 실행
+            if (typeof callback === 'function') {
+                callback();
+            }
+        }, 0);
+    } else {
+        console.error('원래 addMenuIcons 함수가 정의되어 있지 않습니다.');
     }
+};
+
+// 정기 신청 아이콘에 뱃지 업데이트 함수
+function updateRegularBadge() {
+    const regularIcon = document.getElementById("regularIcon");
+    if (!regularIcon) return;
+
+    const latest = window.regularApplications.at(-1);
+    const latestDate = latest?.dates?.[0] || null;
+
+    const badge = document.createElement("span");
+    badge.className = "badge";
+    badge.textContent = latestDate ? latestDate.slice(5) : ""; // MM-DD 표시
+
+    regularIcon.querySelector(".badge")?.remove();
+    if (latestDate) regularIcon.appendChild(badge);
+}
+
+// 비상 신청 아이콘에 뱃지 업데이트 함수
+function updateEmergencyBadge() {
+    const emergencyIcon = document.getElementById("emergencyIcon");
+    if (!emergencyIcon) return;
+
+    const count = window.emergencyApplications.length;
+    const badge = document.createElement("span");
+    badge.className = "badge";
+    badge.textContent = count;
+
+    emergencyIcon.querySelector(".badge")?.remove();
+    if (count > 0) emergencyIcon.appendChild(badge);
+}
+
+// 아이콘 생성 함수
+window.addMenuIcons = function (icons, callback) {
+    const container = document.getElementById("menuIcons");
+    container.innerHTML = "";
+
+    icons.forEach(icon => {
+        const iconDiv = document.createElement("div");
+        iconDiv.className = "menu-icon";
+        iconDiv.id = icon.id || "";
+
+        const img = document.createElement("img");
+        img.src = icon.customIconPath;
+        img.style.width = "40px";
+        img.style.height = "40px";
+
+        const label = document.createElement("span");
+        label.textContent = icon.label;
+
+        iconDiv.appendChild(img);
+        iconDiv.appendChild(label);
+
+        iconDiv.addEventListener("click", icon.onClick);
+        container.appendChild(iconDiv);
+    });
+
+    setTimeout(() => {
+        if (typeof callback === "function") callback();
+    }, 0);
+};
+
+// 내역을 보여줄 컨테이너 요소 생성 및 추가 함수
+function createApplicationHistoryContainers() {
+    // 정기 신청 내역 컨테이너
+    const regularHistoryContainer = document.createElement("div");
+    regularHistoryContainer.id = "regularHistoryContainer";
+    regularHistoryContainer.style.marginTop = "20px";
+    regularHistoryContainer.style.maxHeight = "300px";
+    regularHistoryContainer.style.overflowY = "auto";
+    regularHistoryContainer.style.border = "1px solid #eee";
+    regularHistoryContainer.style.borderRadius = "8px";
+    regularHistoryContainer.style.padding = "10px";
+    
+    const regularHistoryTitle = document.createElement("h3");
+    regularHistoryTitle.textContent = "정기 신청 내역";
+    regularHistoryTitle.style.marginBottom = "10px";
+    regularHistoryTitle.style.fontSize = "16px";
+    regularHistoryTitle.style.fontWeight = "bold";
+    
+    const regularHistoryList = document.createElement("div");
+    regularHistoryList.id = "regularHistoryList";
+    
+    regularHistoryContainer.appendChild(regularHistoryTitle);
+    regularHistoryContainer.appendChild(regularHistoryList);
+    
+    // 정기 신청 버튼 아래에 추가
+    const regularApplyBtn = document.getElementById("regularApplyBtn");
+    regularApplyBtn.parentNode.insertBefore(regularHistoryContainer, regularApplyBtn.nextSibling);
+    
+    // 비상 신청 내역 컨테이너
+    const emergencyHistoryContainer = document.createElement("div");
+    emergencyHistoryContainer.id = "emergencyHistoryContainer";
+    emergencyHistoryContainer.style.marginTop = "20px";
+    emergencyHistoryContainer.style.maxHeight = "300px";
+    emergencyHistoryContainer.style.overflowY = "auto";
+    emergencyHistoryContainer.style.border = "1px solid #eee";
+    emergencyHistoryContainer.style.borderRadius = "8px";
+    emergencyHistoryContainer.style.padding = "10px";
+    
+    const emergencyHistoryTitle = document.createElement("h3");
+    emergencyHistoryTitle.textContent = "비상 신청 내역";
+    emergencyHistoryTitle.style.marginBottom = "10px";
+    emergencyHistoryTitle.style.fontSize = "16px";
+    emergencyHistoryTitle.style.fontWeight = "bold";
+    
+    const emergencyHistoryList = document.createElement("div");
+    emergencyHistoryList.id = "emergencyHistoryList";
+    
+    emergencyHistoryContainer.appendChild(emergencyHistoryTitle);
+    emergencyHistoryContainer.appendChild(emergencyHistoryList);
+    
+    // 비상 신청 버튼 아래에 추가
+    const emergencyApplyBtn = document.getElementById("emergencyApplyBtn");
+    emergencyApplyBtn.parentNode.insertBefore(emergencyHistoryContainer, emergencyApplyBtn.nextSibling);
+    
+    // 비상 신청용 7일 달력 컨테이너 추가
+    const emergencyCalendarContainer = document.createElement("div");
+    emergencyCalendarContainer.id = "emergencyCalendarContainer";
+    emergencyCalendarContainer.style.marginBottom = "15px";
+    
+    const emergencyCalendarTitle = document.createElement("div");
+    emergencyCalendarTitle.textContent = "날짜 선택 (현재 ~ 7일)";
+    emergencyCalendarTitle.style.marginBottom = "10px";
+    emergencyCalendarTitle.style.fontWeight = "bold";
+    
+    const emergencyCalendar = document.createElement("div");
+    emergencyCalendar.id = "emergencyCalendar";
+    
+    const selectedEmergencyDate = document.createElement("div");
+    selectedEmergencyDate.id = "selectedEmergencyDate";
+    selectedEmergencyDate.textContent = "날짜를 선택해주세요";
+    selectedEmergencyDate.style.marginTop = "10px";
+    selectedEmergencyDate.style.fontSize = "14px";
+    selectedEmergencyDate.style.fontWeight = "bold";
+    
+    emergencyCalendarContainer.appendChild(emergencyCalendarTitle);
+    emergencyCalendarContainer.appendChild(emergencyCalendar);
+    emergencyCalendarContainer.appendChild(selectedEmergencyDate);
+    
+    // 비상 신청 입력 상자 아래에 달력 컨테이너 추가
+    const emergencyContentArea = document.getElementById("emergencyContent");
+    emergencyContentArea.parentNode.insertBefore(emergencyCalendarContainer, emergencyContentArea.nextSibling);
+}
+
+// 정기 신청 내역 추가 함수
+function addRegularApplication(dates, content) {
+    // 최대 10개만 저장
+    if (window.regularApplications.length >= 10) {
+        window.regularApplications.shift(); // 가장 오래된 항목 제거
+    }
+    
+    // 신청 내역 객체 생성 및 배열에 추가
+    const application = {
+        dates: dates,
+        content: content,
+        timestamp: new Date().toISOString()
+    };
+    
+    window.regularApplications.push(application);
+    
+    // 화면에 내역 표시
+    updateRegularApplicationList();
+}
+
+// 비상 신청 내역 추가 함수
+function addEmergencyApplication(date, content) {
+    // 최대 10개만 저장
+    if (window.emergencyApplications.length >= 10) {
+        window.emergencyApplications.shift(); // 가장 오래된 항목 제거
+    }
+    
+    // 신청 내역 객체 생성 및 배열에 추가
+    const application = {
+        date: date,
+        content: content,
+        timestamp: new Date().toISOString()
+    };
+    
+    window.emergencyApplications.push(application);
+    
+    // 화면에 내역 표시
+    updateEmergencyApplicationList();
+}
+
+// 정기 신청 내역 리스트 업데이트 함수
+function updateRegularApplicationList() {
+    const container = document.getElementById("regularHistoryList");
+    container.innerHTML = "";
+    
+    if (window.regularApplications.length === 0) {
+        const emptyMessage = document.createElement("p");
+        emptyMessage.textContent = "신청 내역이 없습니다.";
+        emptyMessage.style.color = "#999";
+        emptyMessage.style.textAlign = "center";
+        emptyMessage.style.padding = "10px";
+        container.appendChild(emptyMessage);
+        return;
+    }
+    
+    // 최신 항목이 맨 위에 오도록 역순으로 표시
+    window.regularApplications.slice().reverse().forEach((app, index) => {
+        const item = document.createElement("div");
+        item.className = "history-item";
+        item.style.padding = "10px";
+        item.style.borderBottom = index < window.regularApplications.length - 1 ? "1px solid #eee" : "none";
+        item.style.marginBottom = "5px";
+        
+        const dateElement = document.createElement("div");
+        dateElement.className = "history-date";
+        // 모든 날짜를 표시
+        dateElement.textContent = app.dates.join(", ");
+        dateElement.style.fontWeight = "bold";
+        dateElement.style.marginBottom = "5px";
+        
+        const contentElement = document.createElement("div");
+        contentElement.className = "history-content";
+        contentElement.textContent = app.content;
+        contentElement.style.color = "#666";
+        
+        item.appendChild(dateElement);
+        item.appendChild(contentElement);
+        container.appendChild(item);
+    });
+}
+
+// 비상 신청 내역 리스트 업데이트 함수
+function updateEmergencyApplicationList() {
+    const container = document.getElementById("emergencyHistoryList");
+    container.innerHTML = "";
+    
+    if (window.emergencyApplications.length === 0) {
+        const emptyMessage = document.createElement("p");
+        emptyMessage.textContent = "신청 내역이 없습니다.";
+        emptyMessage.style.color = "#999";
+        emptyMessage.style.textAlign = "center";
+        emptyMessage.style.padding = "10px";
+        container.appendChild(emptyMessage);
+        return;
+    }
+    
+    // 최신 항목이 맨 위에 오도록 역순으로 표시
+    window.emergencyApplications.slice().reverse().forEach((app, index) => {
+        const item = document.createElement("div");
+        item.className = "history-item";
+        item.style.padding = "10px";
+        item.style.borderBottom = index < window.emergencyApplications.length - 1 ? "1px solid #eee" : "none";
+        item.style.marginBottom = "5px";
+        
+        const dateElement = document.createElement("div");
+        dateElement.className = "history-date";
+        dateElement.textContent = app.date;
+        dateElement.style.fontWeight = "bold";
+        dateElement.style.marginBottom = "5px";
+        
+        const contentElement = document.createElement("div");
+        contentElement.className = "history-content";
+        contentElement.textContent = app.content;
+        contentElement.style.color = "#666";
+        
+        item.appendChild(dateElement);
+        item.appendChild(contentElement);
+        container.appendChild(item);
+    });
+}
+
+// 모달 닫기 함수
+function closeModals() {
+    document.getElementById("modalBackdrop").style.display = "none";
+    document.getElementById("regularApplyContainer").style.display = "none";
+    document.getElementById("emergencyApplyContainer").style.display = "none";
+}
 
 // 메인 화면으로 돌아가는 함수
 function showMainScreen() {
@@ -1166,7 +1354,7 @@ function showMainScreen() {
     setupMaintenanceCardScrolling();
 }
 
-// 간단한 달력 초기화 함수
+// 간단한 달력 초기화 함수 (다중 선택 지원)
 function initCalendar() {
     const calendar = document.getElementById("calendar");
     calendar.innerHTML = "";
@@ -1175,6 +1363,9 @@ function initCalendar() {
     const now = new Date();
     let currentYear = now.getFullYear();
     let currentMonth = now.getMonth();
+    
+    // 선택된 날짜들을 저장할 배열
+    let selectedDates = [];
 
     // 달력 컨테이너 스타일
     calendar.style.backgroundColor = "white";
@@ -1302,6 +1493,22 @@ function initCalendar() {
     header.appendChild(nextButton);
     
     calendar.appendChild(header);
+
+    // 선택된 날짜를 표시할 요소 (이미 HTML에 있다고 가정)
+    const selectedDateElement = document.getElementById("selectedDate");
+    // data-dates 속성 추가 (선택된 날짜들을 JSON 형태로 저장)
+    selectedDateElement.setAttribute("data-dates", JSON.stringify([]));
+    
+    // 선택된 날짜들을 업데이트하는 함수
+    function updateSelectedDatesDisplay() {
+        if (selectedDates.length === 0) {
+            selectedDateElement.textContent = "날짜를 선택해주세요";
+        } else {
+            selectedDateElement.textContent = "선택된 날짜: " + selectedDates.join(", ");
+        }
+        // data-dates 속성 업데이트
+        selectedDateElement.setAttribute("data-dates", JSON.stringify(selectedDates));
+    }
     
     // 캘린더 렌더링 함수
     function renderCalendar() {
@@ -1310,174 +1517,285 @@ function initCalendar() {
             calendar.removeChild(calendar.lastChild);
         }
     
-    // 요일 헤더
-    const days = ["일", "월", "화", "수", "목", "금", "토"];
-    const daysHeader = document.createElement("div");
-    daysHeader.style.display = "grid";
-    daysHeader.style.gridTemplateColumns = "repeat(7, 1fr)";
-    daysHeader.style.textAlign = "center";
-    daysHeader.style.fontWeight = "bold";
-    daysHeader.style.marginBottom = "10px";
-    daysHeader.style.padding = "5px 0";
-    daysHeader.style.borderBottom = "1px solid #eee";
+        // 요일 헤더
+        const days = ["일", "월", "화", "수", "목", "금", "토"];
+        const daysHeader = document.createElement("div");
+        daysHeader.style.display = "grid";
+        daysHeader.style.gridTemplateColumns = "repeat(7, 1fr)";
+        daysHeader.style.textAlign = "center";
+        daysHeader.style.fontWeight = "bold";
+        daysHeader.style.marginBottom = "10px";
+        daysHeader.style.padding = "5px 0";
+        daysHeader.style.borderBottom = "1px solid #eee";
+        
+        days.forEach(day => {
+            const dayElement = document.createElement("div");
+            dayElement.textContent = day;
+            if (day === "일") dayElement.style.color = "#ff5555";
+            if (day === "토") dayElement.style.color = "#5555ff";
+            daysHeader.appendChild(dayElement);
+        });
+        
+        calendar.appendChild(daysHeader);
+        
+        // 날짜 그리드
+        const dateGrid = document.createElement("div");
+        dateGrid.style.display = "grid";
+        dateGrid.style.gridTemplateColumns = "repeat(7, 1fr)";
+        dateGrid.style.gap = "5px";
+        
+        // 이번 달의 첫 날
+        const firstDay = new Date(currentYear, currentMonth, 1);
+        const firstDayIndex = firstDay.getDay();
+        
+        // 이번 달의 마지막 날
+        const lastDay = new Date(currentYear, currentMonth + 1, 0);
+        const lastDate = lastDay.getDate();
+        
+        // 이전 달의 마지막 날
+        const prevLastDay = new Date(currentYear, currentMonth, 0);
+        const prevLastDate = prevLastDay.getDate();
+        
+        // 날짜 셀 공통 스타일
+        const cellStyle = {
+            textAlign: "center",
+            padding: "8px",
+            height: "25px",
+            lineHeight: "25px",
+            borderRadius: "50%",
+            margin: "2px",
+            transition: "all 0.2s"
+        };
+        
+        // 이전 달의 날짜들
+        for (let i = firstDayIndex - 1; i >= 0; i--) {
+            const dayElement = document.createElement("div");
+            dayElement.textContent = prevLastDate - i;
+            Object.assign(dayElement.style, cellStyle);
+            dayElement.style.color = "#ccc";
+            dateGrid.appendChild(dayElement);
+        }
+        
+        // 이번 달의 날짜들
+        for (let i = 1; i <= lastDate; i++) {
+            const dayElement = document.createElement("div");
+            dayElement.textContent = i;
+            Object.assign(dayElement.style, cellStyle);
+            dayElement.style.cursor = "pointer";
+            
+            // 오늘 날짜 표시
+            const isToday = i === now.getDate() && currentMonth === now.getMonth() && currentYear === now.getFullYear();
+            if (isToday) {
+                dayElement.style.backgroundColor = "#e6f2ff";
+                dayElement.style.fontWeight = "bold";
+                dayElement.style.border = "1px solid #007bff";
+            }
+            
+            // 주말 색상
+            const dayOfWeek = new Date(currentYear, currentMonth, i).getDay();
+            if (dayOfWeek === 0) dayElement.style.color = "#ff5555";
+            if (dayOfWeek === 6) dayElement.style.color = "#5555ff";
+            
+            // 이미 선택된 날짜인지 확인
+            const dateString = `${currentYear}년 ${currentMonth + 1}월 ${i}일`;
+            const isSelected = selectedDates.includes(dateString);
+            if (isSelected) {
+                dayElement.classList.add("selected");
+                dayElement.style.backgroundColor = "#007bff";
+                dayElement.style.color = "white";
+                dayElement.style.fontWeight = "bold";
+            }
+            
+            // 호버 효과
+
+            dayElement.addEventListener("mouseenter", () => {
+                if (!dayElement.classList.contains("selected")) {
+                    dayElement.style.backgroundColor = "#f0f0f0";
+                }
+            });
+            
+            dayElement.addEventListener("mouseleave", () => {
+                if (!dayElement.classList.contains("selected")) {
+                    if (isToday) {
+                        dayElement.style.backgroundColor = "#e6f2ff";
+                    } else {
+                        dayElement.style.backgroundColor = "";
+                    }
+                }
+            });
+            
+            // 날짜 클릭 이벤트 - 다중 선택 지원
+            dayElement.addEventListener("click", () => {
+                const dateString = `${currentYear}년 ${currentMonth + 1}월 ${i}일`;
+                
+                // 이미 선택된 날짜인지 확인
+                const dateIndex = selectedDates.indexOf(dateString);
+                
+                if (dateIndex > -1) {
+                    // 선택 해제
+                    selectedDates.splice(dateIndex, 1);
+                    dayElement.classList.remove("selected");
+                    
+                    if (isToday) {
+                        dayElement.style.backgroundColor = "#e6f2ff";
+                        dayElement.style.color = dayOfWeek === 0 ? "#ff5555" : dayOfWeek === 6 ? "#5555ff" : "black";
+                    } else {
+                        dayElement.style.backgroundColor = "";
+                        dayElement.style.color = dayOfWeek === 0 ? "#ff5555" : dayOfWeek === 6 ? "#5555ff" : "black";
+                    }
+                } else {
+                    // 날짜 선택
+                    selectedDates.push(dateString);
+                    dayElement.classList.add("selected");
+                    dayElement.style.backgroundColor = "#007bff";
+                    dayElement.style.color = "white";
+                    dayElement.style.fontWeight = "bold";
+                }
+                
+                // 선택된 날짜 표시 업데이트
+                updateSelectedDatesDisplay();
+            });
+            
+            dateGrid.appendChild(dayElement);
+        }
+        
+        // 다음 달의 날짜들
+        const totalCells = 42; // 6주 x 7일
+        const remainingCells = totalCells - (firstDayIndex + lastDate);
+        
+        for (let i = 1; i <= remainingCells; i++) {
+            const dayElement = document.createElement("div");
+            dayElement.textContent = i;
+            Object.assign(dayElement.style, cellStyle);
+            dayElement.style.color = "#ccc";
+            dateGrid.appendChild(dayElement);
+        }
+        
+        calendar.appendChild(dateGrid);
+        
+        // 년/월 선택 업데이트
+        yearSelect.value = currentYear;
+        monthSelect.value = currentMonth;
+    }
+
+    // 초기 달력 렌더링
+    renderCalendar();
+}
+
+// 비상 신청용 7일 달력 초기화 함수
+function initEmergencyCalendar() {
+    const calendar = document.getElementById("emergencyCalendar");
+    calendar.innerHTML = "";
     
-    days.forEach(day => {
-        const dayElement = document.createElement("div");
-        dayElement.textContent = day;
-        if (day === "일") dayElement.style.color = "#ff5555";
-        if (day === "토") dayElement.style.color = "#5555ff";
-        daysHeader.appendChild(dayElement);
-    });
+    // 현재 날짜
+    const today = new Date();
     
-    calendar.appendChild(daysHeader);
-    
-    // 날짜 그리드
-    const dateGrid = document.createElement("div");
-    dateGrid.style.display = "grid";
-    dateGrid.style.gridTemplateColumns = "repeat(7, 1fr)";
-    dateGrid.style.gap = "5px";
-    
-    // 이번 달의 첫 날
-    const firstDay = new Date(currentYear, currentMonth, 1);
-    const firstDayIndex = firstDay.getDay();
-    
-    // 이번 달의 마지막 날
-    const lastDay = new Date(currentYear, currentMonth + 1, 0);
-    const lastDate = lastDay.getDate();
-    
-    // 이전 달의 마지막 날
-    const prevLastDay = new Date(currentYear, currentMonth, 0);
-    const prevLastDate = prevLastDay.getDate();
+    // 캘린더 스타일
+    calendar.style.display = "flex";
+    calendar.style.flexWrap = "wrap";
+    calendar.style.gap = "5px";
+    calendar.style.justifyContent = "center";
+    calendar.style.padding = "10px";
+    calendar.style.backgroundColor = "white";
+    calendar.style.borderRadius = "8px";
+    calendar.style.boxShadow = "0 2px 5px rgba(0,0,0,0.1)";
     
     // 날짜 셀 공통 스타일
     const cellStyle = {
-        textAlign: "center",
-        padding: "8px",
-        height: "25px",
-        lineHeight: "25px",
-        borderRadius: "50%",
-        margin: "2px",
+        width: "60px",
+        height: "60px",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+        alignItems: "center",
+        border: "1px solid #eee",
+        borderRadius: "8px",
+        cursor: "pointer",
         transition: "all 0.2s"
     };
     
-    // 이전 달의 날짜들
-    for (let i = firstDayIndex - 1; i >= 0; i--) {
-        const dayElement = document.createElement("div");
-        dayElement.textContent = prevLastDate - i;
-        Object.assign(dayElement.style, cellStyle);
-        dayElement.style.color = "#ccc";
-        dateGrid.appendChild(dayElement);
-    }
+    // 선택된 날짜 요소
+    const selectedDateElement = document.getElementById("selectedEmergencyDate");
     
-    // 이번 달의 날짜들
-    for (let i = 1; i <= lastDate; i++) {
-        const dayElement = document.createElement("div");
-        dayElement.textContent = i;
-        Object.assign(dayElement.style, cellStyle);
-        dayElement.style.cursor = "pointer";
+    // 7일간의 날짜 생성
+    for (let i = 0; i < 7; i++) {
+        const date = new Date();
+        date.setDate(today.getDate() + i);
         
-        // 오늘 날짜 표시
-        const isToday = i === now.getDate() && currentMonth === now.getMonth() && currentYear === now.getFullYear();
-        if (isToday) {
-            dayElement.style.backgroundColor = "#e6f2ff";
-            dayElement.style.fontWeight = "bold";
+        const dayElement = document.createElement("div");
+        Object.assign(dayElement.style, cellStyle);
+        
+        // 오늘 날짜는 강조
+        if (i === 0) {
+            dayElement.style.backgroundColor = "#e6f7ff";
             dayElement.style.border = "1px solid #007bff";
         }
         
-        // 주말 색상
-        const dayOfWeek = new Date(currentYear, currentMonth, i).getDay();
-        if (dayOfWeek === 0) dayElement.style.color = "#ff5555";
-        if (dayOfWeek === 6) dayElement.style.color = "#5555ff";
+        // 요일 표시
+        const weekday = ["일", "월", "화", "수", "목", "금", "토"][date.getDay()];
+        const weekdayElement = document.createElement("div");
+        weekdayElement.textContent = weekday;
+        weekdayElement.style.fontSize = "12px";
+        weekdayElement.style.marginBottom = "5px";
+        
+        // 일요일은 빨강, 토요일은 파랑
+        if (date.getDay() === 0) weekdayElement.style.color = "#ff5555";
+        if (date.getDay() === 6) weekdayElement.style.color = "#5555ff";
+        
+        // 날짜 표시
+        const dateNumber = document.createElement("div");
+        dateNumber.textContent = date.getDate();
+        dateNumber.style.fontSize = "16px";
+        dateNumber.style.fontWeight = "bold";
+        
+        dayElement.appendChild(weekdayElement);
+        dayElement.appendChild(dateNumber);
+        
+        // 클릭 이벤트
+        dayElement.addEventListener("click", () => {
+            // 이전에 선택된 요소들의 스타일 초기화
+            document.querySelectorAll("#emergencyCalendar > div").forEach(el => {
+                el.style.backgroundColor = el === dayElement && i === 0 ? "#e6f7ff" : "";
+                el.style.border = el === dayElement && i === 0 ? "1px solid #007bff" : "1px solid #eee";
+                el.style.color = "inherit";
+            });
+            
+            // 선택된 요소의 스타일 변경
+            dayElement.style.backgroundColor = "#007bff";
+            dayElement.style.color = "white";
+            dayElement.style.border = "1px solid #007bff";
+            
+            // 선택된 날짜 표시
+            const formattedDate = `${date.getFullYear()}년 ${date.getMonth() + 1}월 ${date.getDate()}일 (${weekday})`;
+            selectedDateElement.textContent = formattedDate;
+        });
         
         // 호버 효과
         dayElement.addEventListener("mouseenter", () => {
-            if (!dayElement.classList.contains("selected")) {
-                dayElement.style.backgroundColor = "#f0f0f0";
+            if (dayElement.style.backgroundColor !== "rgb(0, 123, 255)") { // #007bff와 같음
+                dayElement.style.backgroundColor = i === 0 ? "#d1ebff" : "#f5f5f5";
             }
         });
         
         dayElement.addEventListener("mouseleave", () => {
-            if (!dayElement.classList.contains("selected")) {
-                if (isToday) {
-                    dayElement.style.backgroundColor = "#e6f2ff";
-                } else {
-                    dayElement.style.backgroundColor = "";
-                }
+            if (dayElement.style.backgroundColor !== "rgb(0, 123, 255)") { // #007bff와 같음
+                dayElement.style.backgroundColor = i === 0 ? "#e6f7ff" : "";
             }
         });
         
-        // 날짜 클릭 이벤트
-        dayElement.addEventListener("click", () => {
-            // 이미 선택된 날짜인지 확인
-            if (dayElement.classList.contains("selected")) {
-                // 선택 해제
-                dayElement.classList.remove("selected");
-                if (isToday) {
-                    dayElement.style.backgroundColor = "#e6f2ff";
-                    dayElement.style.border = "1px solid #007bff";
-                    dayElement.style.color = dayOfWeek === 0 ? "#ff5555" : dayOfWeek === 6 ? "#5555ff" : "black";
-                } else {
-                    dayElement.style.backgroundColor = "";
-                    dayElement.style.border = "none";
-                    dayElement.style.color = dayOfWeek === 0 ? "#ff5555" : dayOfWeek === 6 ? "#5555ff" : "black";
-                    dayElement.style.fontWeight = "normal";
-                }
-                document.getElementById("selectedDate").textContent = "날짜를 선택해주세요";
-            } else {
-            // 이전에 선택된 날짜의 스타일 초기화
-            document.querySelectorAll("#calendar > div:nth-child(2) > div").forEach(el => {
-                el.classList.remove("selected");
-                
-                // 오늘 날짜 스타일 유지
-                const day = parseInt(el.textContent);
-                const cellDate = new Date(currentYear, currentMonth, day);
-                if (cellDate.getDate() === now.getDate() && 
-                    cellDate.getMonth() === now.getMonth() && 
-                    cellDate.getFullYear() === now.getFullYear()) {
-                    el.style.backgroundColor = "#e6f2ff";
-                    el.style.border = "1px solid #007bff";
-                } else {
-                    el.style.backgroundColor = "";
-                    el.style.border = "none";
-                }
-            });
-            
-            // 선택된 날짜 스타일 적용
-            dayElement.classList.add("selected");
-            dayElement.style.backgroundColor = "#007bff";
-            dayElement.style.color = "white";
-            dayElement.style.fontWeight = "bold";
-            
-            // 선택된 날짜 표시
-            document.getElementById("selectedDate").textContent = `선택된 날짜: ${currentYear}년 ${currentMonth + 1}월 ${i}일`;
-        }
-        });
+        calendar.appendChild(dayElement);
+    }
+    
+    // 처음에는 오늘 날짜가 선택된 상태로 설정
+    const today_formatted = `${today.getFullYear()}년 ${today.getMonth() + 1}월 ${today.getDate()}일 (${["일", "월", "화", "수", "목", "금", "토"][today.getDay()]})`;
+    selectedDateElement.textContent = today_formatted;
+    
+    // 첫 번째 날짜(오늘)을 선택된 상태로 표시
+    const firstDay = calendar.firstChild;
+    firstDay.style.backgroundColor = "#007bff";
+    firstDay.style.color = "white";
+}
         
-                dateGrid.appendChild(dayElement);
-            }
-            
-            // 다음 달의 날짜들
-            const totalCells = 42; // 6주 x 7일
-            const remainingCells = totalCells - (firstDayIndex + lastDate);
-            
-            for (let i = 1; i <= remainingCells; i++) {
-                const dayElement = document.createElement("div");
-                dayElement.textContent = i;
-                Object.assign(dayElement.style, cellStyle);
-                dayElement.style.color = "#ccc";
-                dateGrid.appendChild(dayElement);
-            }
-            
-            calendar.appendChild(dateGrid);
-            
-            // 년/월 선택 업데이트
-            yearSelect.value = currentYear;
-            monthSelect.value = currentMonth;
-        }
-
-        // 초기 달력 렌더링
-        renderCalendar();
-        }
 
         // HTML이 완전히 로드된 후 실행
 document.addEventListener('DOMContentLoaded', function() {
