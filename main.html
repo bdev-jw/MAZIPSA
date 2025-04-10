@@ -204,7 +204,7 @@
         
         .scroll-container {
             display: grid;
-            grid-template-columns: repeat(auto, minmax(150px, 1fr)); /* 3열로 고정 */
+            grid-template-columns: repeat(2, 1fr); /* 3열로 고정 */
             grid-template-rows: repeat(2, auto); /* Two rows */
             gap: 15px; /* Space between buttons */
             padding-top: 10px;
@@ -229,7 +229,8 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            width: 200px; /* Fixed width */
+            aspect-ratio: 2.5 / 1;
+            width: 100%; /* Fixed width */
             height: 60px; /* Fixed height */
             border: none;
             border-radius: 10px;
@@ -331,14 +332,14 @@
             position: relative;
             width: 100%;
             overflow: hidden;
-            margin-bottom: 70px;
+            margin-bottom: 100px;
         }
         .maintenance-card-scroller {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 15px;
             padding-top: 10px;
-            padding-bottom: 20px;
+            padding-bottom: 100px;
             position: relative;
             overflow-y: auto; /* 스크롤 가능하도록 변경 */
             overscroll-behavior-y: contain; /* 바운스 효과 제한 */
@@ -414,7 +415,7 @@
             display: flex;
             justify-content: center; /* 중앙 정렬 */
             padding: 5px 0;
-            background-color: #ece7e78c;
+            background-color: #ece7e7;
             border-radius: 10px;
             position: fixed;
             bottom: 0;
@@ -455,16 +456,19 @@
             position: absolute;
             top: -4px;       /* 아이콘 위로 조금 올라오도록 */
             right: -4px;     /* 아이콘 오른쪽으로 약간 나가도록 */
-            color: white;
+            color: white !important;
+            width: 25px;
+            height: 25px;
             border-radius: 50%;
-            padding: 1px 4px;
-            font-size: 8px !important;      /* ← 상속/우선순위 무시 */
-            font-weight: bold;
+            font-size: 9px !important;      /* ← 상속/우선순위 무시 */
             font-family: sans-serif;        /* 폰트 직접 설정 */
             z-index: 2;
             min-width: 18px;
             text-align: center;
             line-height: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
           }
 
         /* 모달 배경 스타일 */
@@ -796,6 +800,9 @@
             const container = document.getElementById("maintenanceCards");
             container.innerHTML = "";
 
+            // 정렬: 최신 날짜가 위로 오도록
+            data.records.sort((a, b) => new Date(b.date) - new Date(a.date));
+
             // 모든 데이터 추가
             data.records.forEach((entry,index) => {
                 const card = document.createElement("div");
@@ -919,7 +926,15 @@ document.addEventListener("DOMContentLoaded", () => {
                 // 정기 신청 모달 표시
                 document.getElementById("modalBackdrop").style.display = "block";
                 document.getElementById("regularApplyContainer").style.display = "block";
-                document.getElementById("emergencyApplyContainer").style.display = "none";       
+                document.getElementById("emergencyApplyContainer").style.display = "none";
+                
+                 // ✅ 선택된 날짜 초기화
+                const selectedDateEl = document.getElementById("selectedDate");
+                selectedDateEl.textContent = "날짜를 선택해주세요";
+                selectedDateEl.setAttribute("data-dates", JSON.stringify([]));
+
+                // ✅ 내용 입력란 초기화
+                document.getElementById("regularContent").value = "";
                 
                 // 달력 초기화
                 initCalendar();
@@ -1075,15 +1090,32 @@ function updateRegularBadge() {
     const regularIcon = document.getElementById("regularIcon");
     if (!regularIcon) return;
 
-    const latest = window.regularApplications.at(-1);
-    const latestDate = latest?.dates?.[0] || null;
+    // 모든 정기 신청의 날짜를 하나의 배열로 추출 → Date 객체로 변환
+    const allDates = window.regularApplications
+        .flatMap(app => app.dates)
+        .map(dateStr => new Date(dateStr.replace(/년|월/g, '/').replace(/일/, '').replace(/\s/g, '')))
+        .filter(d => !isNaN(d.getTime()));
+
+    if (allDates.length === 0) {
+        regularIcon.querySelector(".badge")?.remove();
+        return;
+    }
+
+    // 가장 이른 날짜 찾기
+    const earliestDateObj = new Date(Math.min(...allDates));
+    const mm = String(earliestDateObj.getMonth() + 1).padStart(2, '0');
+    const dd = String(earliestDateObj.getDate()).padStart(2, '0');
 
     const badge = document.createElement("span");
     badge.className = "badge";
-    badge.textContent = latestDate ? latestDate.slice(5) : ""; // MM-DD 표시
+    badge.textContent = `${mm}/${dd}`;
+    badge.style.backgroundColor = "red";
+    badge.style.fontWeight = "bold";
+    badge.style.boxShadow = "0 0 5px rgba(0,0,0,0.3)";
 
+    // 기존 뱃지 제거 후 다시 붙이기
     regularIcon.querySelector(".badge")?.remove();
-    if (latestDate) regularIcon.appendChild(badge);
+    regularIcon.appendChild(badge);
 }
 
 // 비상 신청 아이콘에 뱃지 업데이트 함수
@@ -1095,6 +1127,10 @@ function updateEmergencyBadge() {
     const badge = document.createElement("span");
     badge.className = "badge";
     badge.textContent = count;
+    badge.style.backgroundColor = "red";
+    badge.style.fontWeight = "bold";
+    badge.style.boxShadow = "0 0 5px rgba(0,0,0,0.3)";
+
 
     emergencyIcon.querySelector(".badge")?.remove();
     if (count > 0) emergencyIcon.appendChild(badge);
@@ -1504,7 +1540,11 @@ function initCalendar() {
         if (selectedDates.length === 0) {
             selectedDateElement.textContent = "날짜를 선택해주세요";
         } else {
-            selectedDateElement.textContent = "선택된 날짜: " + selectedDates.join(", ");
+            const formatted = selectedDates.map(dateStr => {
+                const parts = dateStr.match(/(\d+)년 (\d+)월 (\d+)일/);
+                return parts ? `${parts[2].padStart(2, '0')}/${parts[3].padStart(2, '0')}` : dateStr;
+            });
+            selectedDateElement.textContent = "선택된 날짜: " + formatted.join(", ");
         }
         // data-dates 속성 업데이트
         selectedDateElement.setAttribute("data-dates", JSON.stringify(selectedDates));
@@ -1923,84 +1963,58 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 검색 결과로 필터링된 유지보수 데이터만 렌더링
     function renderFilteredMaintenanceData(results) {
-        try {
-            // 유지보수 카드 컨테이너만 비우기
-            const maintenanceCardsContainer = document.getElementById('maintenanceCards');
-            if (maintenanceCardsContainer) {
-                maintenanceCardsContainer.innerHTML = '';
-                
-                if (results.length === 0) {
-                    // 검색 결과가 없을 때 메시지 표시
-                    const noResultsMsg = document.createElement('div');
-                    noResultsMsg.className = 'no-results-message';
-                    noResultsMsg.textContent = '검색 결과가 없습니다.';
-                    maintenanceCardsContainer.appendChild(noResultsMsg);
-                } else {
-                    // 검색 결과 표시
-                    results.forEach(equipment => {
-                        equipment.records.forEach(record => {
-                            const card = document.createElement('div');
-                            card.className = 'maintenance-card search-result';
-                            card.innerHTML = `
-                                <h4>${equipment.equipmentName} - ${record.date}</h4>
-                                <p>담당자: ${record.manager}</p>
-                                <p>${record.content}</p>
-                            `;
-                            maintenanceCardsContainer.appendChild(card);
-                        });
-                    });
-                }
-            } else {
-                console.error("maintenanceCards 요소를 찾을 수 없습니다.");
-            }
-        } catch (error) {
-            console.error("필터링된 데이터 렌더링 중 오류 발생:", error);
-        }
+        const container = document.getElementById('maintenanceCards');
+    container.innerHTML = '';
+
+    if (results.length === 0) {
+        const noResultsMsg = document.createElement('div');
+        noResultsMsg.className = 'no-results-message';
+        noResultsMsg.textContent = '검색 결과가 없습니다.';
+        container.appendChild(noResultsMsg);
+        return;
     }
+
+    results.forEach(equipment => {
+        equipment.records.forEach(record => {
+            const card = document.createElement("div");
+            card.classList.add("maintenance-card");
+
+            const sanitizedManager = record.manager.replace(/\s+/g, "");
+            const imagePath = `/public/${sanitizedManager}.jpg`;
+            const defaultImagePath = "/public/mesa_logo.png";
+
+            card.innerHTML = `
+                <div class="card-header"><span class="date">${record.date}</span></div>
+                <div class="card-body">
+                    <div class="manager">
+                        <img src="${imagePath}" class="manager-icon" onerror="this.onerror=null; this.src='${defaultImagePath}';">
+                        ${record.manager}
+                    </div>
+                    <div class="content">${record.content}</div>
+                </div>
+            `;
+
+            container.appendChild(card);
+        });
+    });
+
+    setupMaintenanceCardScrolling();
+}
     
     // 유지보수 표시 초기화 (원래 화면으로 돌아가기)
     function resetMaintenanceDisplay() {
         try {
-            // maintenanceCards 요소 찾기
-            const maintenanceCardsContainer = document.getElementById('maintenanceCards');
-            if (!maintenanceCardsContainer) {
-                console.error("maintenanceCards 요소를 찾을 수 없습니다.");
-                return;
-            }
-            
-            // 선택된 장비 정보 가져오기
-            const selectedEquipment = localStorage.getItem('selectedEquipment');
-            if (!selectedEquipment) {
-                console.warn("선택된 장비 정보가 없습니다.");
-                maintenanceCardsContainer.innerHTML = '<div class="no-results-message">선택된 장비가 없습니다.</div>';
-                return;
-            }
-            
-            // 유지보수 데이터 가져오기
             const maintenanceData = JSON.parse(localStorage.getItem('maintenanceData')) || {};
-            const equipmentData = maintenanceData[selectedEquipment];
-            
-            if (!equipmentData || !equipmentData.records || equipmentData.records.length === 0) {
-                maintenanceCardsContainer.innerHTML = '<div class="no-results-message">유지보수 기록이 없습니다.</div>';
+            const firstEquipment = Object.keys(maintenanceData)[0];
+    
+            if (!firstEquipment) {
+                document.getElementById('maintenanceCards').innerHTML = '<div class="no-results-message">데이터가 없습니다.</div>';
                 return;
             }
-            
-            // 컨테이너 비우기
-            maintenanceCardsContainer.innerHTML = '';
-            
-            // 기록 렌더링
-            equipmentData.records.forEach(record => {
-                const card = document.createElement('div');
-                card.className = 'maintenance-card';
-                card.innerHTML = `
-                    <h4>${record.date}</h4>
-                    <p>담당자: ${record.manager}</p>
-                    <p>${record.content}</p>
-                `;
-                maintenanceCardsContainer.appendChild(card);
-            });
+    
+            showMaintenanceInfo(firstEquipment, maintenanceData); // 첫 장비 기준으로 초기화
         } catch (error) {
-            console.error("유지보수 표시 초기화 중 오류 발생:", error);
+            console.error("초기화 중 오류 발생:", error);
         }
     }
 });
