@@ -142,12 +142,38 @@
             text-align: center;
             font-weight: bold;
             color: #3b3dc4;
-            font-size: clamp(30px, 5vw, 50px); /* ✅ 화면 크기에 따라 동적 조정 */
+            font-size: clamp(1.2rem, 2.5vw, 2rem); /* ✅ 화면 크기에 따라 동적 조정 */
             white-space: nowrap; /* ✅ 한 줄 유지 */
             overflow: hidden; /* ✅ 넘칠 경우 숨김 */
             text-overflow: ellipsis; /* ✅ 너무 길 경우 ...으로 표시 */
-            max-width: 100%; /* ✅ 부모 요소에 맞게 자동 조정 */
+            max-width: 120%; /* ✅ 부모 요소에 맞게 자동 조정 */
             margin: 0 auto;
+        }
+        /* ✅ 로고와 제목을 나란히 배치하는 컨테이너 */
+        .header-flex 
+        {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 10px 16px;
+            max-width: 100%;
+            flex-wrap: wrap;
+                }
+
+                /* ✅ 로고 이미지 스타일 */
+                .header-logo {
+                    height: clamp(30px, 4vw, 45px);
+            object-fit: contain;
+            }
+
+            /* ✅ 텍스트(제목) 스타일 */
+            .header-title {
+                font-size: clamp(20px, 5vw, 32px);
+        color: #3b3dc4;
+        margin: 0;
+        font-weight: bold;
+        white-space: nowrap;
         }
         .modal {
             display: none;
@@ -186,10 +212,10 @@
         button {
             width: 100%;
             padding: 3px;
-            background-color: #28a745;
+            background-color: #e5e5e5;
             border: none;
             border-radius: 5px;
-            color: black;
+            color: rgb(0, 0, 0);
             cursor: pointer;
         }
         button:hover {
@@ -200,6 +226,7 @@
             max-width: 640px;
             overflow: hidden; /* 스크롤바 숨김 */
             position: relative;
+            padding: 10px;
         }
         
         .scroll-container {
@@ -241,24 +268,10 @@
             position:relative;
         }
         .equipment-button:hover {
-            background-color: #030303;
+            background-color: #9d6262;
 }
         .equipment-button.active {
-            background-color: #141414;
-        }
-        /* 첫 번째 열 (1열, 4열, ...) */
-        .equipment-button:nth-child(3n+1) {
-            background-color: #f0f8ff; /* 연한 파란색 */
-        }
-
-        /* 두 번째 열 (2열, 5열, ...) */
-        .equipment-button:nth-child(3n+2) {
-            background-color: #e6f2ff; /* 더 연한 파란색 */
-        }
-
-        /* 세 번째 열 (3열, 6열, ...) */
-        .equipment-button:nth-child(3n+3) {
-            background-color: #f0f0f0; /* 회색 계열 */
+            background-color: #2bb858;
         }
         .equipment-button img {
             width: 30px;
@@ -273,6 +286,18 @@
             overflow: hidden;
             text-overflow: ellipsis;
             max-width: 100%;
+        }
+        /* ✅ 기록 있음 */
+        .equipment-button.has-records {
+            background-color: #9293e0;
+            color: white;
+        }
+
+        /* ✅ 기록 없음 */
+        .equipment-button.no-records {
+            background-color: rgba(160, 160, 160, 0.3);
+            color: #444;
+            opacity: 0.7;
         }
         
         /* 가로 스크롤 드래그 */
@@ -332,7 +357,7 @@
             position: relative;
             width: 100%;
             overflow: hidden;
-            margin-bottom: 100px;
+            margin-bottom: 120px;
         }
         .maintenance-card-scroller {
             display: grid;
@@ -510,6 +535,38 @@
             cursor: pointer;
             color: #555;
         }
+        /* 장비 개수별 레이아웃 클래스 */
+        .layout-1 {
+            display: grid !important;
+            grid-template-columns: 1fr;
+            grid-template-rows: 1fr;
+            height: 120px;
+        }
+        .layout-2 {
+            display: grid !important;
+            grid-template-columns: 1fr;
+            grid-template-rows: 1fr 1fr;
+            height: 140px;
+        }
+        .layout-3 {
+            display: grid !important;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: 1fr;
+            height: 80px;
+        }
+        .layout-4 {
+            display: grid !important;
+            grid-template-columns: repeat(2, 1fr);
+            grid-template-rows: repeat(2, 1fr);
+            height: 140px;
+        }
+        .layout-default {
+            display: grid !important;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            grid-template-rows: auto;
+            gap: 15px;
+            height: auto;
+        }
     </style>
 </head>
 <body>
@@ -525,11 +582,6 @@
         </div>
             
         <h1 id="clientHeader"></h1>
-
-        <!-- <div class="tab-container">
-            <button class="tab active" id="viewTab" onclick="showMaintenanceView()">조회</button>
-            <button class="tab" id="addTab" onclick="showMaintenanceAdd()">추가</button>
-        </div> -->
 
         <div class="business-card-container-wrapper">
             <div class="business-card-container" id="businessCards"></div>
@@ -587,9 +639,9 @@
                 const clientData = await response.json();
 
                 document.getElementById("clientHeader").innerHTML = `
-                <div style="display: flex; align-items: center;">
-                    <img src="public/sbs.png" alt="Logo" style="height: 70px; margin-right: 1px;">
-                    <span>${clientData.business_info.project_name}</span>
+                 <div class="header-flex">
+                    <img src="${clientData.business_info.logoPath}" alt="Logo" class="header-logo">
+                    <span class="header-title">${clientData.business_info.project_name}</span>
                 </div>
                 `;
 
@@ -610,7 +662,7 @@
             let businessPeriod = `${startDate} ~ ${endDate}`;
 
             Object.entries(businessInfo).forEach(([key, value]) => {
-                if (key === "project_name" || key === "startDate" || key === "endDate") return;
+                if (key === "project_name" || key === "startDate" || key === "endDate" || key === "logoPath") return;
                 
                 const card = document.createElement("div");
                 card.classList.add("business-card");
@@ -713,10 +765,10 @@
             tabsContainer.innerHTML = "";
 
             // 장비 데이터를 먼저 배열로 변환
-            const equipmentList = Object.entries(maintenanceData).map(([key, value]) => ({
+            /* const equipmentList = Object.entries(maintenanceData).map(([key, value]) => ({
                 key,
                 ...value
-            }));
+            })); */
         
             Object.entries(maintenanceData).forEach(([equipmentKey, equipmentData]) => {
                 if (!equipmentData || !equipmentData.name) {
@@ -732,6 +784,14 @@
                 // ✅ 장비 버튼 생성
                 const button = document.createElement("button");
                 button.classList.add("equipment-button");
+
+                // ✅ 기록 여부 확인
+                if (Array.isArray(equipmentData.records) && equipmentData.records.length > 0) {
+                    button.classList.add("has-records"); // 기록이 있는 경우
+                } else {
+                    button.classList.add("no-records"); // 기록이 없는 경우
+                }
+
                 button.onclick = () => showMaintenanceInfo(equipmentKey, maintenanceData);
         
                 button.innerHTML = `
@@ -741,8 +801,6 @@
         
                 tabsContainer.appendChild(button);
             });
-        
-            setupScrollDragging();
         }
         
         // ✅ 스크롤을 드래그로 넘길 수 있도록 설정

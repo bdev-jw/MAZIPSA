@@ -9,7 +9,8 @@ const clients = {
             sales_person:'최성영',
             engineer:'김두현',
             startDate: '2024-01-01',
-            endDate:'2025-12-31'
+            endDate:'2025-12-31',
+            logoPath: "/public/sbs.png"
         },
         maintenance_data:{
             equipment1: {
@@ -174,127 +175,120 @@ const clients = {
     },
     test2:{
         id:'test2@mesa.kr',
-        client_name:'KBS',
+        client_name:'홈앤쇼핑',
         password:'123',
         business_info: {
-            project_name: "예시",
-            delivered_equipment: '예시장비',
-            sales_person:'이준원',
-            engineer:'김창규'
+            project_name: "25년도 유지보수",
+            delivered_equipment: 'NBU(A)/INFOSCALE',
+            sales_person:'신은철',
+            engineer:'정재승/황인성',
+            startDate: '2025-01-01',
+            endDate:'2025-12-31',
+            logoPath:'/public/homeshoping.svg'
         },
         maintenance_data:{
-            equipment1: [
+            equipment1: {
+                name: "VRTS-NBU(A)",
+                records: [
                 {
-                    date: '2024-11-22',
-                    cycle: '매월',
-                    content: '정기 점검',
-                    manager: '이영희'
+                    date: '2025-03-24',
+                    cycle: '발생시',
+                    content: 'NBUA 5250 설치 지원',
+                    manager: '강영구'
                 },
                 {
-                    date: '2024-12-22',
-                    cycle: '매월',
-                    content: '필터 교체',
-                    manager: '이영희'
-                }
-            ],
-            equipment2: [
-                {
-                    date: '2024-12-15',
-                    cycle: '2개월',
-                    content: '부품 교체',
-                    manager: '박수'
-                }
-            ],
-            equipment3: [
-                {
-                    date: '2024-11-30',
-                    cycle: '3개월',
-                    content: '소프트웨어 업데이트',
-                    manager: '김지혜'
-                }
-            ]
-            // equipment4: [
-            //     {
-            //         date: '2024-10-10',
-            //         cycle: '매주',
-            //         content: '상태 점검',
-            //         manager: '이상우'
-            //     }
-            // ]
-        }
-    },
-    test3:{
-        id:'test3@mesa.kr',
-        client_name:'MBC',
-        password:'123',
-        business_info: {
-            project_name: "예시",
-            delivered_equipment: '예시장비',
-            sales_person:'이준원',
-            engineer:'김창규'
-        },
-        maintenance_data:{
-        }
-    },
-    test4:{
-        id:'test4@mesa.kr',
-        client_name:'EBS',
-        password:'123',
-        business_info: {
-            project_name: "예시",
-            delivered_equipment: '예시장비',
-            sales_person:'이준원',
-            engineer:'김창규'
-        },
-        maintenance_data:{
-            equipment1: [
-                {
-                    date: '2024-11-22',
-                    cycle: '매월',
-                    content: '정기 점검',
-                    manager: '이영희'
+                    date: '2025-03-24',
+                    cycle: '발생시',
+                    content: '입고 임대장비 구성 및 RACK 재배치',
+                    manager: '정재승'
                 },
                 {
-                    date: '2024-12-22',
-                    cycle: '매월',
-                    content: '필터 교체',
-                    manager: '이희'
-                }
-            ],
-            equipment2: [
+                    date: '2025-03-17',
+                    cycle: '발생시',
+                    content: '임대장비 입고 및 업그레이드',
+                    manager: '정재승'
+                },
                 {
-                    date: '2024-12-15',
-                    cycle: '2개월',
-                    content: '부품 교체',
-                    manager: '박민수'
-                }
-            ],
-            equipment3: [
+                    date: '2025-03-17',
+                    cycle: '발생시',
+                    content: 'NBUA 5240 업그레이드',
+                    manager: '강영구'
+                },
                 {
-                    date: '2024-11-30',
-                    cycle: '3개월',
-                    content: '소프트웨어 업데이트',
-                    manager: '김지혜'
-                }
-            ],
-            equipment4: [
+                    date: '2025-03-05',
+                    cycle: '발생시',
+                    content: '업그레이드',
+                    manager: '정재승'
+                },
                 {
-                    date: '2024-10-10',
-                    cycle: '매주',
-                    content: '상태 점검',
-                    manager: '이상우'
-                }
-            ],
-            equipment5: [
+                    date: '2025-02-16',
+                    cycle: '발생시',
+                    content: 'DB백업 장애처리',
+                    manager: '정재승'
+                },
                 {
-                    date: '2024-10-10',
-                    cycle: '매주',
-                    content: '상태 점검',
-                    manager: '이상우'
+                    date: '2025-01-02',
+                    cycle: '발생시',
+                    content: '인증서 만료 오류 조치 처리',
+                    manager: '김수호'
                 }
             ]
+        },
+            equipment2: {
+                name: "VRTS-INFOSCALE",
+                records: [
+                {
+                    date: '2025-03-19',
+                    cycle: '발생시',
+                    content: '점검',
+                    manager: '심상기'
+                },
+                {
+                    date: '2025-02-28',
+                    cycle: '발생시',
+                    content: '장애 해결',
+                    manager: '심상기'
+                },
+                {
+                    date: '2025-02-12',
+                    cycle: '발생시',
+                    content: '정기 방문 점검',
+                    manager: '심상기'
+                },
+                {
+                    date: '2025-02-01',
+                    cycle: '발생시',
+                    content: '장애 관련 유선 대응',
+                    manager: '심상기'
+                },
+                {
+                    date: '2025-01-20',
+                    cycle: '발생시',
+                    content: '점검',
+                    manager: '심상기'
+                }
+            ]
+        },
+        equipment3: {
+            name: "NTNX-HCI"
+        },
+        equipment4: {
+            name: "NTNX-SW"
+        },
+        equipment5: {
+            name: "STRATUS"
+        },
+        equipment6: {
+            name: "SPECTRA-LOGIC"
+        },
+        equipment7: {
+            name: "DELL-EMC"
+        },
+        equipment8: {
+            name: "ETC"
         }
-    },
+        }
+    }
 }
 
 // ✅ 데이터를 내보내기 (필수)
