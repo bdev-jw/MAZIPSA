@@ -210,6 +210,8 @@ app.use(express.static(path.join(__dirname, 'public')));  // 이미지 전용
 app.use(express.static(__dirname));  // 루트의 .html, .js 등
 
 // ✅ SPA 기본 페이지 라우팅
-app.get('*', (req, res) => {
+app.get('*', (req, res, next) => {
+    // API 경로는 무시하고 통과
+    if (req.path.startsWith('/api/')) return next();
     res.sendFile(path.join(__dirname, 'index.html'));
 });
