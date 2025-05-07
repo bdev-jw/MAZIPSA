@@ -23,7 +23,8 @@ mongoose.connect(mongoURI)
     .then(() => {
         console.log('✅ MongoDB Atlas 연결됨');
         initializeData().then(() => {
-            app.listen(3000, () => console.log('🚀 서버 실행 중 (포트 3000)...'));
+            const port = process.env.PORT || 3000;
+            app.listen(port, () => console.log(`🚀 서버 실행 중 (포트 ${port})...`));
         }).catch(error => {
             console.error('❌ 초기화 오류:', error);
             process.exit(1);
