@@ -1,4 +1,4 @@
-require('dotenv').config(); // ✅ .env 파일 로드
+require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -10,34 +10,31 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-const data = require('./data.js'); // ✅ 기존 데이터 불러오기
+const data = require('./data.js');
 
-// ✅ MongoDB Atlas 연결
+// ✅ MongoDB 연결
 const mongoURI = process.env.MONGODB_URI;
 if (!mongoURI) {
-    console.error("❌ 환경 변수 MONGODB_URI가 설정되지 않았습니다!");
-    process.exit(1); // 서버 종료
+    console.error("❌ 환경 변수 MONGODB_URI가 없습니다!");
+    process.exit(1);
 }
 
 mongoose.connect(mongoURI)
     .then(() => {
-        console.log('✅ MongoDB Atlas에 연결됨');
-
-        // ✅ 데이터 초기화 실행 후 서버 시작
+        console.log('✅ MongoDB Atlas 연결됨');
         initializeData().then(() => {
-            app.listen(3000, () => console.log('🚀 서버가 3000번 포트에서 실행 중...'));
+            app.listen(3000, () => console.log('🚀 서버 실행 중 (포트 3000)...'));
         }).catch(error => {
-            console.error('❌ 초기 데이터 삽입 중 오류 발생:', error);
+            console.error('❌ 초기화 오류:', error);
             process.exit(1);
         });
-
     })
     .catch(err => {
-        console.error('❌ MongoDB 연결 오류:', err);
+        console.error('❌ MongoDB 연결 실패:', err);
         process.exit(1);
     });
 
-// ✅ MongoDB 클라이언트 스키마
+// ✅ 스키마 정의
 const ClientSchema = new mongoose.Schema({
     id: { type: String, required: true, unique: true },
     client_name: String,
@@ -47,12 +44,12 @@ const ClientSchema = new mongoose.Schema({
 });
 const Client = mongoose.model('Client', ClientSchema);
 
-// ✅ 데이터 초기화 함수
+// ✅ 초기 데이터 삽입
 const initializeData = async () => {
-    console.log('📌 MongoDB 데이터 초기화 시작...');
+    console.log('📌 데이터 초기화 시작...');
     try {
         await Client.deleteMany({});
-        console.log('🗑 기존 데이터를 삭제했습니다.');
+        console.log('🗑 기존 데이터 삭제 완료');
 
         let insertCount = 0;
         for (const key in data.clients) {
@@ -65,17 +62,17 @@ const initializeData = async () => {
             const newClient = new Client(clientData);
             await newClient.save();
             insertCount++;
-            console.log(`✅ ${newClient.id} 데이터 삽입 완료!`);
+            console.log(`✅ ${newClient.id} 저장됨`);
         }
 
-        console.log(`🚀 총 ${insertCount}개의 데이터를 삽입했습니다.`);
+        console.log(`🚀 총 ${insertCount}개 클라이언트 저장 완료`);
     } catch (error) {
-        console.error('❌ 데이터 삽입 중 오류 발생:', error);
+        console.error('❌ 데이터 삽입 오류:', error);
         throw error;
     }
 };
 
-// ✅ 로그인 API
+// ✅ 고객사 로그인
 app.post('/api/login', async (req, res) => {
     const { id, password } = req.body;
     const client = await Client.findOne({ id, password });
@@ -87,41 +84,35 @@ app.post('/api/login', async (req, res) => {
     }
 });
 
-// ✅ 현재 로그인한 사용자의 데이터 가져오기 API
+// ✅ 클라이언트 데이터 조회
 app.get('/api/client/:id', async (req, res) => {
     try {
         const client = await Client.findOne({ id: req.params.id });
-        if (!client) {
-            return res.status(404).json({ message: "사용자를 찾을 수 없습니다." });
-        }
+        if (!client) return res.status(404).json({ message: "사용자 없음" });
         res.json(client);
     } catch (error) {
         res.status(500).json({ message: "서버 오류", error });
     }
 });
 
-// ✅ 유지보수 정보 조회 API
+// ✅ 유지보수 조회
 app.get('/api/maintenance/:clientId', async (req, res) => {
     try {
         const client = await Client.findOne({ id: req.params.clientId });
-        if (!client) {
-            return res.status(404).json({ message: "사용자를 찾을 수 없습니다." });
-        }
+        if (!client) return res.status(404).json({ message: "사용자 없음" });
         res.json(client.maintenance_data);
     } catch (error) {
         res.status(500).json({ message: "서버 오류", error });
     }
 });
 
-// ✅ 유지보수 정보 추가 API
+// ✅ 유지보수 추가 (고객사)
 app.post('/api/maintenance/:clientId', async (req, res) => {
     try {
         const { equipment, date, cycle, content, manager } = req.body;
         const client = await Client.findOne({ id: req.params.clientId });
 
-        if (!client) {
-            return res.status(404).json({ message: "사용자를 찾을 수 없습니다." });
-        }
+        if (!client) return res.status(404).json({ message: "사용자 없음" });
 
         if (!client.maintenance_data[equipment]) {
             client.maintenance_data[equipment] = [];
@@ -130,13 +121,74 @@ app.post('/api/maintenance/:clientId', async (req, res) => {
         client.maintenance_data[equipment].push({ date, cycle, content, manager });
         await client.save();
 
-        res.json({ message: "유지보수 정보가 추가되었습니다.", maintenance_data: client.maintenance_data });
+        res.json({ message: "추가 완료", maintenance_data: client.maintenance_data });
     } catch (error) {
         res.status(500).json({ message: "서버 오류", error });
     }
 });
 
-// ✅ 파일 업로드 설정 (multer)
+// ✅ 엔지니어 목록 조회
+app.get('/api/engineers', (req, res) => {
+    if (!data.engineers || data.engineers.length === 0) {
+        return res.status(404).json({ message: '엔지니어 정보 없음' });
+    }
+    res.json(data.engineers);
+});
+
+// ✅ 엔지니어 로그인 확인
+app.post('/api/engineer-login', (req, res) => {
+    const { id, password } = req.body;
+    const found = data.engineers.find(e => e.id === id && e.password === password);
+    if (found) {
+        res.json({ id: found.id });
+    } else {
+        res.status(401).json({ message: 'ID 또는 비밀번호가 잘못되었습니다.' });
+    }
+});
+
+// ✅ 엔지니어 기록 저장 API ⭐ 핵심 추가 부분 ⭐
+app.post('/api/engineer-record', async (req, res) => {
+    try {
+        const { manager, client, project, equipment, date, content } = req.body;
+
+        if (!manager || !client || !project || !equipment || !date || !content) {
+            return res.status(400).json({ message: '필수 항목 누락' });
+        }
+
+        const clientDoc = await Client.findOne({
+            client_name: client,
+            "business_info.project_name": project
+        });
+
+        if (!clientDoc) {
+            return res.status(404).json({ message: '고객사 또는 프로젝트 찾을 수 없음' });
+        }
+
+        if (!clientDoc.maintenance_data[equipment]) {
+            clientDoc.maintenance_data[equipment] = [];
+        }
+
+        clientDoc.maintenance_data[equipment].push({
+            manager,
+            date,
+            content,
+            cycle: "비정기"
+        });
+
+        await clientDoc.save();
+
+        res.json({
+            message: "엔지니어 기록 저장 성공",
+            maintenance_data: clientDoc.maintenance_data
+        });
+
+    } catch (error) {
+        console.error("❌ 기록 저장 오류:", error);
+        res.status(500).json({ message: "서버 오류", error });
+    }
+});
+
+// ✅ 파일 업로드
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
         const uploadPath = 'uploads/';
@@ -149,15 +201,15 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
-// ✅ 파일 업로드 API
 app.post('/api/upload', upload.single('file'), (req, res) => {
     res.json({ message: '파일 업로드 성공', filename: req.file.filename });
 });
 
-// ✅ 정적 파일 서빙 설정
-app.use(express.static(path.join(__dirname, 'public')));
+// ✅ 정적 파일 서빙
+app.use(express.static(path.join(__dirname, 'public')));  // 이미지 전용
+app.use(express.static(__dirname));  // 루트의 .html, .js 등
 
-// ✅ 모든 경로에 대해 index.html 서빙 (SPA를 위한 설정)
+// ✅ SPA 기본 페이지 라우팅
 app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+    res.sendFile(path.join(__dirname, 'index.html'));
 });

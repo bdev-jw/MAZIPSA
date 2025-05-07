@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>유지보수 기록 작성</title>
+  <script src="/data.js"></script> <!-- ✅ data.js 먼저 로드 -->
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f5f5f5;
+    }
+    .profile {
+      display: flex;
+      align-items: center;
+      margin-bottom: 20px;
+      background: #fff;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .profile img {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin-right: 20px;
+    }
+    .profile-info {
+      font-size: 16px;
+    }
+    .record-form {
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .form-group {
+      margin-bottom: 15px;
+    }
+    label {
+      font-weight: bold;
+      display: block;
+      margin-bottom: 5px;
+    }
+    input, select, textarea {
+      width: 100%;
+      padding: 10px;
+      font-size: 14px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      box-sizing: border-box; /* ✅ 패딩 포함 너비 계산 */
+    }
+    textarea {
+      resize: vertical;
+      height: 100px;
+    }
+    button {
+      background-color: #3b3dc4;
+      color: white;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #2e30b8;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 프로필 정보 -->
+  <div class="profile">
+    <img id="profileImage" alt="프로필 사진" />
+    <div class="profile-info">
+      <div><strong id="profileName"></strong></div>
+      <div id="profileDetail"></div>
+    </div>
+  </div>
+
+  <!-- 기록 입력 폼 -->
+  <div class="record-form">
+    <div class="form-group">
+      <label for="clientSelect">고객사 선택</label>
+      <select id="clientSelect" onchange="updateProjects()">
+        <option value="">고객사를 선택하세요</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="projectSelect">프로젝트 선택</label>
+      <select id="projectSelect" onchange="updateEquipments()" disabled>
+        <option value="">프로젝트를 선택하세요</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="equipmentSelect">장비 선택</label>
+      <select id="equipmentSelect" disabled>
+        <option value="">장비를 선택하세요</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="date">날짜</label>
+      <input type="date" id="date" />
+    </div>
+
+    <div class="form-group">
+      <label for="content">유지보수 내역</label>
+      <textarea id="content" placeholder="유지보수 작업 내용을 입력하세요"></textarea>
+    </div>
+
+    <button onclick="submitRecord()">기록 저장</button>
+  </div>
+
+  <script>
+    let currentUser = null;
+
+    // 페이지 초기화
+    window.onload = function() {
+      // localStorage에서 로그인한 엔지니어 정보 가져오기
+      const loggedEngineer = JSON.parse(localStorage.getItem('loggedEngineer'));
+      
+      if (!loggedEngineer) {
+        alert("로그인된 정보가 없습니다. 로그인 페이지로 이동합니다.");
+        window.location.href = 'index.html';
+        return;
+      }
+      
+      // engineers 배열에서 로그인한 엔지니어 찾기
+      currentUser = engineers.find(e => e.id === loggedEngineer.id);
+      
+      if (!currentUser) {
+        alert("엔지니어 정보를 찾을 수 없습니다. 로그인 페이지로 이동합니다.");
+        localStorage.removeItem('loggedEngineer');
+        window.location.href = 'index.html';
+        return;
+      }
+
+      // 프로필 정보 표시
+      document.getElementById("profileName").textContent = currentUser.name || '이름 없음';
+      document.getElementById("profileDetail").textContent = 
+        `${currentUser.gender || ''} / ${currentUser.position || ''} / ${currentUser.experience || ''}`;
+      
+      // 프로필 사진 설정 (사진이 있는 경우만)
+      if (currentUser.photo) {
+        document.getElementById("profileImage").src = currentUser.photo;
+      }
+
+      // 고객사 선택 목록 채우기
+      const clientSelect = document.getElementById("clientSelect");
+      
+      // assignments가 있는 경우만 처리
+      if (currentUser.assignments && currentUser.assignments.length > 0) {
+        currentUser.assignments.forEach(assignment => {
+          const option = document.createElement("option");
+          option.value = assignment.client;
+          option.textContent = assignment.client;
+          clientSelect.appendChild(option);
+        });
+      } else {
+        console.warn("현재 엔지니어에게 할당된 고객사가 없습니다.");
+      }
+
+      // 오늘 날짜를 date input에 기본값으로 세팅
+      const today = new Date();
+      const yyyy = today.getFullYear();
+      const mm = String(today.getMonth() + 1).padStart(2, '0'); // 월은 0부터 시작해서 +1
+      const dd = String(today.getDate()).padStart(2, '0');
+      const todayString = `${yyyy}-${mm}-${dd}`;
+      document.getElementById("date").value = todayString;
+    };
+
+    function updateProjects() {
+      const selectedClient = document.getElementById("clientSelect").value;
+      const projectSelect = document.getElementById("projectSelect");
+      const equipmentSelect = document.getElementById("equipmentSelect");
+      projectSelect.innerHTML = '<option value="">프로젝트를 선택하세요</option>';
+      equipmentSelect.innerHTML = '<option value="">장비를 선택하세요</option>';
+      projectSelect.disabled = true;
+      equipmentSelect.disabled = true;
+
+      if (!selectedClient || !currentUser.assignments) return;
+
+      const clientData = currentUser.assignments.find(a => a.client === selectedClient);
+      if (clientData && clientData.projects && clientData.projects.length > 0) {
+        clientData.projects.forEach(project => {
+          const option = document.createElement("option");
+          option.value = project.projectName;
+          option.textContent = project.projectName;
+          projectSelect.appendChild(option);
+        });
+        projectSelect.disabled = false;
+      } else {
+        console.warn("선택한 고객사에 프로젝트가 없습니다.");
+      }
+    }
+
+    function updateEquipments() {
+      const selectedClient = document.getElementById("clientSelect").value;
+      const selectedProject = document.getElementById("projectSelect").value;
+      const equipmentSelect = document.getElementById("equipmentSelect");
+      equipmentSelect.innerHTML = '<option value="">장비를 선택하세요</option>';
+      equipmentSelect.disabled = true;
+
+      if (!selectedClient || !selectedProject || !currentUser.assignments) return;
+
+      const clientData = currentUser.assignments.find(a => a.client === selectedClient);
+      if (clientData) {
+        const projectData = clientData.projects.find(p => p.projectName === selectedProject);
+        if (projectData && projectData.equipments && projectData.equipments.length > 0) {
+          projectData.equipments.forEach(equipment => {
+            const option = document.createElement("option");
+            option.value = equipment;
+            option.textContent = equipment;
+            equipmentSelect.appendChild(option);
+          });
+          equipmentSelect.disabled = false;
+        } else {
+          console.warn("선택한 프로젝트에 장비가 없습니다.");
+        }
+      }
+    }
+
+    function submitRecord() {
+        const stored = JSON.parse(localStorage.getItem("loggedEngineer"));
+        const loggedInUserId = stored?.id;
+        const currentUser = engineers.find(e => e.id === loggedInUserId);
+        const manager = currentUser?.name;  // ✅ 이 줄이 꼭 필요함!
+      const client = document.getElementById("clientSelect").value;
+      const project = document.getElementById("projectSelect").value;
+      const equipment = document.getElementById("equipmentSelect").value;
+      const date = document.getElementById("date").value;
+      const content = document.getElementById("content").value.trim();
+
+      if (!client || !project || !equipment || !date || !content) {
+        alert("모든 항목을 입력해주세요.");
+        return;
+      }
+
+      const recordData = {
+        manager: currentUser.name,
+        client,
+        project,
+        equipment,
+        date,
+        content
+      };
+
+      // API 호출 예제 - 실제 서버에 맞게 수정 필요
+      // 수정된 코드 (서버에 구현된 엔지니어 전용 API)
+        fetch('/api/engineer-record', {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+            manager,
+            client,
+            project,
+            equipment,
+            date,
+            content
+            })
+        })
+      .then(res => {
+        if (res.ok) {
+          alert("기록이 저장되었습니다.");
+          document.getElementById("content").value = ""; // 내용 초기화
+        } else {
+          alert("저장 실패: " + res.statusText);
+        }
+      })
+      .catch(err => {
+        console.error("API 오류:", err);
+        alert("오류 발생: 서버 연결 문제가 있습니다.");
+      });
+    }
+  </script>
+
+</body>
+</html>

@@ -291,5 +291,71 @@ const clients = {
     }
 }
 
-// ✅ 데이터를 내보내기 (필수)
-module.exports = { clients };
+const engineers = [
+    {
+      id: "dhkim@mesa.kr",
+      password:'123',
+      name: "김두현",
+      gender: "남",
+      position: "대리",
+      experience: "4년차",
+      photo: "/public/김두현.jpg",
+      assignments: [
+        {
+          client: "SBS",
+          projects: [
+            {
+              projectName: "IT통합유지보수",
+              equipments: ["서버 A", "서버 B", "네트워크 스위치"]
+            },
+            {
+              projectName: "보도국장비지원",
+              equipments: ["카메라1호기", "송출장비"]
+            }
+          ]
+        },
+        {
+          client: "KBS",
+          projects: [
+            {
+              projectName: "본관네트워크",
+              equipments: ["코어스위치", "AP"]
+            }
+          ]
+        }
+      ]
+    },
+  
+    {
+      id: "engineer_hjy",
+      name: "홍지영",
+      gender: "여",
+      position: "과장",
+      experience: "6년차",
+      photo: "/public/profile_hjy.jpg",
+      assignments: [
+        {
+          client: "MBC",
+          projects: [
+            {
+              projectName: "송출센터지원",
+              equipments: ["송출서버1", "송출서버2"]
+            }
+          ]
+        }
+      ]
+    }
+  
+    // 추가 엔지니어를 이 패턴으로 계속 추가하면 됨
+  ];
+
+// ✅ 브라우저 환경이면 전역 변수 등록
+if (typeof window !== 'undefined') {
+    window.engineers = engineers;
+    window.clients = clients;
+  }
+  
+  // ✅ Node.js 환경이면 모듈로 내보내기
+  if (typeof module !== 'undefined' && module.exports) {
+    module.exports = { engineers, clients };
+  }
