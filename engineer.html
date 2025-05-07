@@ -228,56 +228,51 @@
     }
 
     function submitRecord() {
-        const stored = JSON.parse(localStorage.getItem("loggedEngineer"));
-        const loggedInUserId = stored?.id;
-        const currentUser = engineers.find(e => e.id === loggedInUserId);
-        const manager = currentUser?.name;  // ✅ 이 줄이 꼭 필요함!
-      const client = document.getElementById("clientSelect").value;
-      const project = document.getElementById("projectSelect").value;
-      const equipment = document.getElementById("equipmentSelect").value;
-      const date = document.getElementById("date").value;
-      const content = document.getElementById("content").value.trim();
+    // 전역 변수 currentUser를 사용 (이미 페이지 로드 시 설정됨)
+    if (!currentUser) {
+        alert("로그인 정보를 찾을 수 없습니다. 다시 로그인해주세요.");
+        window.location.href = 'index.html';
+        return;
+    }
 
-      if (!client || !project || !equipment || !date || !content) {
+    const manager = currentUser.name;
+    const client = document.getElementById("clientSelect").value;
+    const project = document.getElementById("projectSelect").value;
+    const equipment = document.getElementById("equipmentSelect").value;
+    const date = document.getElementById("date").value;
+    const content = document.getElementById("content").value.trim();
+
+    if (!client || !project || !equipment || !date || !content) {
         alert("모든 항목을 입력해주세요.");
         return;
-      }
+    }
 
-      const recordData = {
-        manager: currentUser.name,
-        client,
-        project,
-        equipment,
-        date,
-        content
-      };
-
-      // API 호출 예제 - 실제 서버에 맞게 수정 필요
-      // 수정된 코드 (서버에 구현된 엔지니어 전용 API)
-        fetch('https://ma-helper.onrender.com/api/engineer-record', {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
+    fetch('https://ma-helper.onrender.com/api/engineer-record', {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
             manager,
             client,
             project,
             equipment,
             date,
             content
-            })
         })
-      .then(res => {
+    })
+    .then(res => {
         if (res.ok) {
-          alert("기록이 저장되었습니다.");
-          document.getElementById("content").value = ""; // 내용 초기화
-        } else {
-          alert("저장 실패: " + res.statusText);
+            return res.json();
         }
-      })
-      .catch(err => {
+        throw new Error(res.statusText);
+    })
+    .then(data => {
+        alert("기록이 저장되었습니다.");
+        document.getElementById("content").value = ""; // 내용 초기화
+    })
+    .catch(err => {
         console.error("API 오류:", err);
-        alert("오류 발생: 서버 연결 문제가 있습니다.");
-      });
+        alert("오류 발생: " + err.message);
+    });
     }
   </script>
 

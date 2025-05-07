@@ -210,6 +210,10 @@ app.post('/api/upload', upload.single('file'), (req, res) => {
 app.use(express.static(path.join(__dirname, 'public')));  // 이미지 전용
 app.use(express.static(__dirname));  // 루트의 .html, .js 등
 
+app.get('/api/test', (req, res) => {
+    res.json({ message: "테스트 성공: 서버가 작동 중입니다." });
+});
+
 // ✅ SPA 기본 페이지 라우팅
 app.get('*', (req, res, next) => {
     // API 경로는 무시하고 통과
