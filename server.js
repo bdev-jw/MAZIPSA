@@ -148,6 +148,7 @@ app.post('/api/engineer-login', (req, res) => {
 });
 
 // ✅ 엔지니어 기록 저장 API ⭐ 핵심 추가 부분 ⭐
+
 app.post('/api/engineer-record', async (req, res) => {
     try {
         const { manager, client, project, equipment, date, content } = req.body;
@@ -156,19 +157,32 @@ app.post('/api/engineer-record', async (req, res) => {
             return res.status(400).json({ message: '필수 항목 누락' });
         }
 
-        const clientDoc = await Client.findOne({
-            client_name: client,
-            "business_info.project_name": project
+        console.log("📌 요청 데이터:", { manager, client, project, equipment });
+
+        // 클라이언트 검색 - client_name만으로 찾기
+        const clientDoc = await Client.findOne({ 
+            client_name: { $regex: new RegExp(client, 'i') } // 대소문자 무시하고 부분 일치로 검색
         });
 
         if (!clientDoc) {
-            return res.status(404).json({ message: '고객사 또는 프로젝트 찾을 수 없음' });
+            // 클라이언트 목록 출력하여 디버깅
+            const allClients = await Client.find({}, 'client_name');
+            console.log("💡 사용 가능한 클라이언트 목록:", allClients.map(c => c.client_name));
+            return res.status(404).json({ message: '고객사를 찾을 수 없음' });
         }
 
+        console.log("✅ 클라이언트 찾음:", clientDoc.client_name);
+
+        // 장비 데이터 구조 확인 및 생성
+        if (!clientDoc.maintenance_data) {
+            clientDoc.maintenance_data = {};
+        }
+        
         if (!clientDoc.maintenance_data[equipment]) {
             clientDoc.maintenance_data[equipment] = [];
         }
 
+        // 데이터 추가
         clientDoc.maintenance_data[equipment].push({
             manager,
             date,
@@ -177,6 +191,7 @@ app.post('/api/engineer-record', async (req, res) => {
         });
 
         await clientDoc.save();
+        console.log(`✅ 기록 저장 성공: ${clientDoc.client_name} - ${equipment}`);
 
         res.json({
             message: "엔지니어 기록 저장 성공",
@@ -185,9 +200,49 @@ app.post('/api/engineer-record', async (req, res) => {
 
     } catch (error) {
         console.error("❌ 기록 저장 오류:", error);
-        res.status(500).json({ message: "서버 오류", error });
+        res.status(500).json({ message: "서버 오류", error: error.message });
     }
 });
+// app.post('/api/engineer-record', async (req, res) => {
+//     try {
+//         const { manager, client, project, equipment, date, content } = req.body;
+
+//         if (!manager || !client || !project || !equipment || !date || !content) {
+//             return res.status(400).json({ message: '필수 항목 누락' });
+//         }
+
+//         const clientDoc = await Client.findOne({
+//             client_name: client,
+//             "business_info.project_name": project
+//         });
+
+//         if (!clientDoc) {
+//             return res.status(404).json({ message: '고객사 또는 프로젝트 찾을 수 없음' });
+//         }
+
+//         if (!clientDoc.maintenance_data[equipment]) {
+//             clientDoc.maintenance_data[equipment] = [];
+//         }
+
+//         clientDoc.maintenance_data[equipment].push({
+//             manager,
+//             date,
+//             content,
+//             cycle: "비정기"
+//         });
+
+//         await clientDoc.save();
+
+//         res.json({
+//             message: "엔지니어 기록 저장 성공",
+//             maintenance_data: clientDoc.maintenance_data
+//         });
+
+//     } catch (error) {
+//         console.error("❌ 기록 저장 오류:", error);
+//         res.status(500).json({ message: "서버 오류", error });
+//     }
+// });
 
 // ✅ 파일 업로드
 const storage = multer.diskStorage({

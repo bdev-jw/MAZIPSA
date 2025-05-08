@@ -242,12 +242,18 @@
     const date = document.getElementById("date").value;
     const content = document.getElementById("content").value.trim();
 
+    console.log("전송 데이터:", { manager, client, project, equipment, date });  // 로그 추가
+
     if (!client || !project || !equipment || !date || !content) {
         alert("모든 항목을 입력해주세요.");
         return;
     }
 
-    fetch('https://ma-helper.onrender.com/api/engineer-record', {
+    const apiBaseUrl = window.location.hostname.includes('localhost') 
+        ? 'http://localhost:3000'  // 로컬 개발 환경
+        : 'https://ma-helper.onrender.com'; // 배포 환경
+
+    fetch(`${apiBaseUrl}/api/engineer-record`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

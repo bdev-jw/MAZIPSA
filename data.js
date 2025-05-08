@@ -302,10 +302,10 @@ const engineers = [
       photo: "/public/김두현.jpg",
       assignments: [
         {
-          client: "SBS",
+          client: "(주)에스비에스(SBS)",
           projects: [
             {
-              projectName: "IT통합유지보수",
+              projectName: "방송 IT 통합 유지보수",
               equipments: ["서버 A", "서버 B", "네트워크 스위치"]
             },
             {
