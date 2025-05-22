@@ -306,7 +306,7 @@ const engineers = [
           projects: [
             {
               projectName: "방송 IT 통합 유지보수",
-              equipments: ["서버 A", "서버 B", "네트워크 스위치"]
+              equipments: ["서버 A", "서버 B", "네트워크 스위치","NUTANIX"]
             },
             {
               projectName: "보도국장비지원",
