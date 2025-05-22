@@ -762,13 +762,18 @@
                 const maintenanceData = await response.json();
 
                 // 유지보수 데이터를 localStorage에 저장
-                localStorage.setItem('maintenanceData', JSON.stringify(maintenanceData));
+                const convertedData = {};
+                    Object.entries(maintenanceData).forEach(([key, records]) => {
+                        convertedData[key] = {
+                            name: key,
+                            records: records
+                        };
+                    });
+                    createEquipmentButtons(convertedData);
 
-                createEquipmentButtons(maintenanceData);
-
-                const firstEquipment = Object.keys(maintenanceData)[0];
+                const firstEquipment = Object.keys(convertedData)[0];
                 if (firstEquipment) {
-                    showMaintenanceInfo(firstEquipment, maintenanceData);
+                    showMaintenanceInfo(firstEquipment, convertedData);
                 }
             } catch (error) {
                 console.error("🚨 유지보수 데이터 로드 중 오류 발생:", error);
