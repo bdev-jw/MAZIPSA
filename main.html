@@ -6,71 +6,88 @@
     <title>사업 및 유지보수 정보</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Noto Sans KR', sans-serif;
             margin: auto;
             padding: 0;
-            background-color: rgba(255, 255, 255, 0.8);
+            background-color: #1A1A1A;
+            color: white;
             max-width: 640px;
-            touch-action: pan-y; /* Enable vertical scrolling */
-            height: auto;
+            touch-action: pan-y;
+            min-height: 100vh;
+            position:relative
         }
+
+        .container {
+    display: flex;
+    flex-direction: column;
+    flex: 1; /* 남은 공간 모두 차지 */
+    padding-bottom: 60px; /* 메뉴바 높이만큼 하단 패딩 */
+}
+
         .app-title {
             display: flex;
             justify-content: space-between;
             align-items: center;
             position: relative;
-            padding: 5px 15px;
-            font-size: 24px;
+            padding: 15px;
+            font-size: 20px;
             font-weight: bold;
-            padding: 5px;
-            background-color: #f8f9fa; /* 배경색 (선택 사항) */
-            border-bottom: 2px solid #ddd; /* 구분선 추가 */
+            background-color: #1A1A1A;
+            border-bottom: none;
         }
+
         .search-container-inline {
             display: none;
             margin-left: 10px;
             transition: all 0.3s;
-            position: relative; /* 이벤트 버블링에서 검색창 클릭을 구분하기 위해 추가 */
+            position: relative;
         }
-        
+
         .search-input-inline {
             width: 0;
             padding: 5px;
             border-radius: 5px;
-            border: 1px solid #ccc;
+            border: 1px solid #333;
+            background-color: #1A1A1A;
+            color: white;
             transition: width 0.3s;
         }
-        
+
         .search-input-inline.active {
             width: 200px;
         }
-        
+
         #searchIcon {
             width: 30px;
             height: 30px;
             cursor: pointer;
+            color: #00E1C0;
+            fill: #00E1C0;
         }
+
         #clearSearchBtn {
             display: none;
             margin-left: 8px;
             cursor: pointer;
-            color: #666;
-            background: #eee;
-            border: 1px solid #ccc;
+            color: white;
+            background: #333;
+            border: 1px solid #444;
             border-radius: 4px;
             padding: 2px 5px;
             font-size: 12px;
         }
+
         .container {
             display: flex;
             flex-direction: column;
             height: auto;
         }
+
         .logout {
             cursor: pointer;
             padding: 10px 15px;
-            background-color: #87CEEB;
-            color: white;
+            background-color: #00E1C0;
+            color: #1A1A1A;
             border: none;
             border-radius: 15px;
             position: absolute;
@@ -79,79 +96,94 @@
             font-size: 16px;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
         }
+
         .business-info, .maintenance-info {
-            background-color: rgba(255, 255, 255, 0.8);
+            background-color: #1A1A1A;
             padding: 20px;
             border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
             margin-bottom: 20px;
+            display: flex ;
         }
+
         .business-info h2, .maintenance-info h2 {
             text-align: center;
-            color: #0fb668;
+            color: #00E1C0;
+            margin: 5px 0 10px 0;
+            font-size: 18px;
         }
+
         .info-item {
             margin: 10px 0;
             padding: 10px;
-            border: 1px solid #ddd;
+            border: 1px solid #333;
             border-radius: 5px;
-            background-color: rgba(240, 240, 240, 0.9);
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            background-color: #222;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
+
         .tabs {
             display: flex;
             justify-content: space-around;
             margin-bottom: 20px;
         }
+
         .tab {
             width: 100%;
             height: 30px;
             padding: 10px 20px;
             cursor: pointer;
-            background-color: rgba(57, 81, 105, 0.886);
-            border: 1px solid #fff;
+            background-color: #333;
+            border: 1px solid #444;
             border-radius: 5px;
             transition: background-color 0.3s;
             text-align: center;
             font-weight: bold;
             font-size: larger;
-            color: #fff;
+            color: white;
             display: flex;
             align-items: center;
             justify-content: center;
         }
+
         .tab:hover {
-            background-color: rgba(44, 20, 197, 0.5);
+            background-color: #444;
         }
-        .active {
-            background-color: rgba(231, 231, 231, 0.5);
-        } 
+
+        .tab.active {
+            background-color: #00E1C0;
+            color: #1A1A1A;
+        }
+
         table {
             width: 100%;
             border-collapse: collapse;
         }
+
         th, td {
             padding: 5px;
-            border: 1px solid #757373;
+            border: 1px solid #444;
             text-align: center;
+            color: white;
         }
+
         th {
-            background-color: rgba(255, 255, 255, 0.2);
+            background-color: #333;
         }
+
         h1 {
             text-align: center;
             font-weight: bold;
-            color: #3b3dc4;
-            font-size: clamp(1.2rem, 2.5vw, 2rem); /* ✅ 화면 크기에 따라 동적 조정 */
-            white-space: nowrap; /* ✅ 한 줄 유지 */
-            overflow: hidden; /* ✅ 넘칠 경우 숨김 */
-            text-overflow: ellipsis; /* ✅ 너무 길 경우 ...으로 표시 */
-            max-width: 120%; /* ✅ 부모 요소에 맞게 자동 조정 */
+            color: #00E1C0;
+            font-size: clamp(1.2rem, 2.5vw, 2rem);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 120%;
             margin: 0 auto;
         }
-        /* ✅ 로고와 제목을 나란히 배치하는 컨테이너 */
-        .header-flex 
-        {
+
+        .header-flex {
             display: flex;
             align-items: center;
             justify-content: center;
@@ -159,22 +191,21 @@
             padding: 10px 16px;
             max-width: 100%;
             flex-wrap: wrap;
-                }
-
-                /* ✅ 로고 이미지 스타일 */
-                .header-logo {
-                    height: clamp(30px, 4vw, 45px);
-            object-fit: contain;
-            }
-
-            /* ✅ 텍스트(제목) 스타일 */
-            .header-title {
-                font-size: clamp(20px, 5vw, 32px);
-        color: #3b3dc4;
-        margin: 0;
-        font-weight: bold;
-        white-space: nowrap;
         }
+
+        .header-logo {
+            height: clamp(30px, 4vw, 45px);
+            object-fit: contain;
+        }
+
+        .header-title {
+            font-size: clamp(20px, 5vw, 32px);
+            color: #00E1C0;
+            margin: 0;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
         .modal {
             display: none;
             position: fixed;
@@ -183,102 +214,123 @@
             top: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
+            background-color: rgba(0, 0, 0, 0.7);
         }
+
         .modal-content {
-            background-color: white;
+            background-color: #222;
             margin: 10% auto;
             padding: 20px;
             border-radius: 5px;
             width: 90%;
             max-width: 400px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            color: white;
         }
+
         .close-btn {
             float: right;
             font-size: 20px;
             cursor: pointer;
+            color: #00E1C0;
         }
+
         .close-btn:hover {
-            color: red;
+            color: #00B09B;
         }
+
         input {
             width: 100%;
-            padding: 0;
+            padding: 8px;
             margin: 5px 0;
-            border: 1px solid #ccc;
+            border: 1px solid #444;
             border-radius: 5px;
+            background-color: #333;
+            color: white;
         }
+
         button {
             width: 100%;
-            padding: 3px;
-            background-color: #e5e5e5;
+            padding: 8px;
+            background-color: #00E1C0;
             border: none;
             border-radius: 5px;
-            color: rgb(0, 0, 0);
+            color: #1A1A1A;
             cursor: pointer;
+            font-weight: bold;
         }
+
         button:hover {
-            background-color: #218838;
+            background-color: #00B09B;
         }
+
         #equipmentTabsContainer {
             width: 100%;
             max-width: 640px;
-            overflow: hidden; /* 스크롤바 숨김 */
+            overflow: hidden;
             position: relative;
             padding: 10px;
         }
-        
+
         .scroll-container {
             display: grid;
-            grid-template-columns: repeat(2, 1fr); /* 3열로 고정 */
-            grid-template-rows: repeat(2, auto); /* Two rows */
-            gap: 15px; /* Space between buttons */
-            padding-top: 10px;
-            padding-bottom: 10px;
+            grid-template-columns: repeat(2, 1fr);
+            grid-template-rows: repeat(2, auto);
+            gap: 10px;
+            padding-top: 5px;
+            padding-bottom: 5px;
             overflow-x: auto;
-            overflow-y: hidden; /* Hide vertical overflow */
-            grid-auto-flow: column; /* Fill columns first before moving to next row */
+            overflow-y: hidden;
+            grid-auto-flow: column;
             scroll-snap-type: x mandatory;
             user-select: none;
             cursor: grab;
             -webkit-overflow-scrolling: touch;
-            scrollbar-width: none; /* Hide scrollbar for Firefox */
-            -ms-overflow-style: none; /* Hide scrollbar for IE/Edge */
-            max-height: auto; /* Set a max height to contain two rows */
-            width: 100%; /* 전체 너비 사용 */
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            max-height: auto;
+            width: 100%;
         }
+
         .scroll-container::-webkit-scrollbar {
-            display: none; /* Hide scrollbar for Chrome, Safari, and Opera */
+            display: none;
         }
+
         .equipment-button {
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             aspect-ratio: 2.5 / 1;
-            width: 100%; /* Fixed width */
-            height: 60px; /* Fixed height */
+            width: 100%;
+            height: 60px;
             border: none;
             border-radius: 10px;
-            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.3);
             cursor: pointer;
             transition: transform 0.2s ease-in-out;
             scroll-snap-align: start;
-            position:relative;
+            position: relative;
+            background-color: #333;
+            color: white;
         }
+
         .equipment-button:hover {
-            background-color: #9d6262;
-}
-        .equipment-button.active {
-            background-color: #2bb858;
+            background-color: #444;
         }
+
+        .equipment-button.active {
+            background-color: #00E1C0;
+            color: #1A1A1A;
+        }
+
         .equipment-button img {
             width: 30px;
             height: 30px;
             object-fit: contain;
             margin-bottom: 5px;
         }
+
         .equipment-button span {
             font-size: 10px;
             text-align: center;
@@ -287,206 +339,202 @@
             text-overflow: ellipsis;
             max-width: 100%;
         }
-        /* ✅ 기록 있음 */
+
         .equipment-button.has-records {
-            background-color: #9293e0;
-            color: white;
+            background-color: #00E1C0;
+            color: #1A1A1A;
         }
 
-        /* ✅ 기록 없음 */
         .equipment-button.no-records {
-            background-color: rgba(160, 160, 160, 0.3);
-            color: #444;
+            background-color: #333;
+            color: #aaa;
             opacity: 0.7;
         }
-        
-        /* 가로 스크롤 드래그 */
-        .scroll-container::-webkit-scrollbar {
-            display: none; /* 기본 스크롤바 숨김 */
-        }
+
         .tab-container {
             display: flex;
             justify-content: center;
             margin-bottom: 10px;
         }
-        .tab {
-            padding: 10px 20px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            background-color: #f0f0f0;
-            border: none;
-            border-radius: 5px;
-            margin: 0 5px;
-            transition: background-color 0.3s;
-        }
-        .tab.active {
-            background-color: #1c1d1d;
-            color: white;
-        }
+
         .business-card-container {
             width: 100%;
             max-width: 640px;
             height: auto;
             display: grid;
-            grid-template-columns: repeat(2, 1fr); /* 2열 */
-            grid-template-rows: repeat(2, auto); /* 2행 */
+            grid-template-columns: repeat(2, 1fr);
+            grid-template-rows: repeat(2, auto);
             gap: 10px;
-            padding-bottom :10px;
+            padding-bottom: 10px;
             padding-top: 10px;
             white-space: nowrap;
         }
-        
+
         .business-card {
-            min-width : 150px;
+            min-width: 150px;
             width: auto;
-            max-width: 320px; /* 카드 최대 크기 */
+            max-width: 320px;
             height: auto;
-            padding: 5px;
-            background: #dde9ff;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 10px;
+            background: #222;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
             border-radius: 10px;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
             align-items: center;
             justify-self: center;
+            border: 1px solid #333;
+            color: white;
         }
-        
-        .maintenance-card-wrapper {
-            position: relative;
-            width: 100%;
-            overflow: hidden;
-            margin-bottom: 120px;
+
+        .maintenance-card-scroller {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            padding: 5px 5px 10px 5px; /* 패딩 줄임 */
+            overflow-y: visible; /* 스크롤 제거 */
+            flex: 1; /* 유연하게 크기 조정 */
         }
+
         .maintenance-card-scroller {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 15px;
-            padding-top: 10px;
-            padding-bottom: 100px;
+            padding-top: 5px;
+            padding-bottom: 15px;
             position: relative;
-            overflow-y: auto; /* 스크롤 가능하도록 변경 */
-            overscroll-behavior-y: contain; /* 바운스 효과 제한 */
-            -webkit-overflow-scrolling: touch; /* iOS 부드러운 스크롤 */
+            overflow-y: auto;
+            overscroll-behavior-y: contain;
+            -webkit-overflow-scrolling: touch;
             max-height: 350px;
         }
+
         .maintenance-card-overlay {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 50px;
-            background: linear-gradient(transparent, rgba(255,255,255,1));
-            pointer-events: none;
-            z-index: 5;
+            display: none;
         }
+
         .card-title {
             font-size: 14px;
             font-weight: bold;
-            color: #070707;
+            color: #00E1C0;
             margin-bottom: 10px;
         }
+
         .card-content {
             font-size: 12px;
-            color: #333;
+            color: #ccc;
         }
+
         .maintenance-card {
-            background-color: #ffffff;
+            background-color: #222;
             padding: 15px;
             border-radius: 10px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
             display: flex;
             flex-direction: column;
             position: relative;
-            min-height: 150px; /* ✅ 최소 높이 설정 */
-            height: auto; /* ✅ 높이를 내용따라 조정 */
+            min-height: 100px;
+            height: auto;
+            border: 1px solid #333;
         }
+
         .card-header {
             display: flex;
             justify-content: flex-end;
             font-size: 14px;
             font-weight: bold;
-            color: #555;
+            color: #bbb;
         }
+
         .date {
-            color: #007bff;
+            color: #00E1C0;
             font-size: small;
         }
+
         .card-body {
             margin-top: 10px;
-            flex-grow: 1; /* ✅ 카드 내용이 자동으로 동일한 높이를 유지하도록 설정 */
+            flex-grow: 1;
             display: flex;
             flex-direction: column;
         }
+
         .manager {
             font-size: 14px;
             font-weight: bold;
-            color: #333;
+            color: white;
             margin-bottom: 5px;
         }
+
         .manager-icon {
             width: 50px;
             height: 50px;
             margin-right: 5px;
             border-radius: 25px;
+            border: 2px solid #00E1C0;
         }
+
         .content {
             font-size: 12px;
-            color: #666;
+            color: #bbb;
         }
+
         .menu {
             max-width: 640px;
             display: flex;
-            justify-content: center; /* 중앙 정렬 */
+            justify-content: center;
             padding: 5px 0;
-            background-color: #ece7e7;
-            border-radius: 10px;
+            background-color: #222;
+            border-radius: 10px 10px 0 0;
             position: fixed;
             bottom: 0;
             left: 50%;
             transform: translateX(-50%);
             z-index: 10;
             width: 100%;
-          }
-          
-          .menu-icon-container {
+            border-top: 1px solid #333;
+            height: 50px; /* 고정 높이 */
+        }
+
+        .menu-icon-container {
             display: flex;
             justify-content: space-between;
             width: 100%;
-            max-width: 400px; /* 아이콘 전체 너비 제한 */
+            max-width: 400px;
             padding: 0 20px;
-          }
-          
-          .menu-icon {
+        }
+
+        .menu-icon {
             position: relative;
             cursor: pointer;
             transition: transform 0.2s ease;
             display: flex;
             flex-direction: column;
             align-items: center;
-          }
-          
-          .menu-icon:hover {
+        }
+
+        .menu-icon:hover {
             transform: scale(1.1);
-          }
-          
-          .menu-icon span {
+        }
+
+        .menu-icon span {
             font-size: 12px;
             font-weight: bolder;
             margin-top: 3px;
-            color: rgb(0, 0, 0);
-          }
-          .badge {
+            color: white;
+        }
+
+        .badge {
             position: absolute;
-            top: -4px;       /* 아이콘 위로 조금 올라오도록 */
-            right: -4px;     /* 아이콘 오른쪽으로 약간 나가도록 */
+            top: -4px;
+            right: -4px;
             color: white !important;
+            background-color: #00E1C0;
             width: 25px;
             height: 25px;
             border-radius: 50%;
-            font-size: 9px !important;      /* ← 상속/우선순위 무시 */
-            font-family: sans-serif;        /* 폰트 직접 설정 */
+            font-size: 9px !important;
+            font-family: sans-serif;
             z-index: 2;
             min-width: 18px;
             text-align: center;
@@ -494,9 +542,8 @@
             display: flex;
             align-items: center;
             justify-content: center;
-          }
+        }
 
-        /* 모달 배경 스타일 */
         .modal-backdrop {
             display: none;
             position: fixed;
@@ -504,68 +551,36 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
+            background-color: rgba(0, 0, 0, 0.7);
             z-index: 50;
             cursor: pointer;
         }
 
-        /* 모달 컨테이너 스타일 */
         .modal-container {
             position: fixed;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background-color: white;
+            background-color: #222;
             padding: 20px;
             border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
             z-index: 51;
             max-width: 640px;
             width: 90%;
             max-height: 80vh;
             overflow-y: auto;
+            color: black;
+            border: 1px solid #333;
         }
 
-        /* 모달 닫기 버튼 */
         .modal-close {
             position: absolute;
             top: 10px;
             right: 10px;
             font-size: 20px;
             cursor: pointer;
-            color: #555;
-        }
-        /* 장비 개수별 레이아웃 클래스 */
-        .layout-1 {
-            display: grid !important;
-            grid-template-columns: 1fr;
-            grid-template-rows: 1fr;
-            height: 120px;
-        }
-        .layout-2 {
-            display: grid !important;
-            grid-template-columns: 1fr;
-            grid-template-rows: 1fr 1fr;
-            height: 140px;
-        }
-        .layout-3 {
-            display: grid !important;
-            grid-template-columns: repeat(3, 1fr);
-            grid-template-rows: 1fr;
-            height: 80px;
-        }
-        .layout-4 {
-            display: grid !important;
-            grid-template-columns: repeat(2, 1fr);
-            grid-template-rows: repeat(2, 1fr);
-            height: 140px;
-        }
-        .layout-default {
-            display: grid !important;
-            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-            grid-template-rows: auto;
-            gap: 15px;
-            height: auto;
+            color: #00E1C0;
         }
     </style>
 </head>
@@ -869,7 +884,7 @@
                 // ✅ 담당자 이름을 파일명으로 변환 (예: "김철수" → "김철수.jpg")
                 const sanitizedManager = entry.manager.replace(/\s+/g, ""); // 공백 제거
                 const imagePath = `/public/${sanitizedManager}.jpg`;
-                const defaultImagePath = "/public/mesa_logo.png"; // 기본 이미지
+                const defaultImagePath = "/public/man.png"; // 기본 이미지
 
                 card.innerHTML = `
                     <div class="card-header"><span class="date">${entry.date}</span></div>

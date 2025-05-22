@@ -297,9 +297,9 @@ const engineers = [
       password:'123',
       name: "김두현",
       gender: "남",
-      position: "대리",
+      position: "차장",
       experience: "4년차",
-      photo: "/public/김두현.jpg",
+      photo: "/public/man.png",
       assignments: [
         {
           client: "(주)에스비에스(SBS)",
