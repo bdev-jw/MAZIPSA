@@ -9,8 +9,21 @@ const fs = require('fs');
 const app = express();
 
 // ✅ CORS 설정을 가장 먼저 적용 (다른 미들웨어보다 앞에 위치)
+const allowedOrigins = [
+  'http://localhost:3000',
+  'http://127.0.0.1:5500',
+  'http://localhost:5500',
+  'https://ma-helper.netlify.app' // 정확한 origin 추가
+];
+
 app.use(cors({
-    origin: ['http://localhost:3000', 'http://127.0.0.1:5500', 'http://localhost:5500', 'https://*.netlify.app', '*'],
+    origin: function(origin, callback) {
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            callback(new Error('CORS 정책에 의해 차단됨: ' + origin));
+        }
+    },
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
     credentials: true
