@@ -292,6 +292,9 @@ app.post('/api/engineer-record', async (req, res) => {
 
         clientDoc.maintenance_data[equipmentKey].push(newRecord);
 
+        // ❗ 이 줄이 반드시 있어야 DB에 반영됨
+        clientDoc.markModified(`maintenance_data.${equipmentKey}`);
+
         // MongoDB에 저장
         await clientDoc.save();
 
