@@ -164,13 +164,16 @@ app.get('/api/client/:id', async (req, res) => {
 // ✅ 유지보수 조회
 app.get('/api/maintenance/:clientId', async (req, res) => {
     try {
-        const client = await Client.findOne({ id: req.params.clientId });
-        if (!client) return res.status(404).json({ message: "사용자 없음" });
-        res.json(client.maintenance_data);
-    } catch (error) {
-        console.error('유지보수 조회 오류:', error);
-        res.status(500).json({ message: "서버 오류", error: error.message });
+    const client = await Client.findOne({ id: req.params.clientId }); // ← 수정 포인트
+
+    if (!client) {
+      return res.status(404).json({ message: "고객사를 찾을 수 없습니다." });
     }
+
+    res.json(client.maintenance_data);
+  } catch (error) {
+    res.status(500).json({ message: "서버 오류", error: error.message });
+  }
 });
 
 // ✅ 유지보수 추가 (고객사)
