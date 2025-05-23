@@ -230,15 +230,15 @@ app.post('/api/engineer-login', (req, res) => {
 // ✅ 엔지니어 기록 저장 API - 완전히 수정된 버전
 app.post('/api/engineer-record', async (req, res) => {
     console.log('📌 엔지니어 기록 저장 요청 받음');
-    console.log('요청 헤더:', req.headers);
     console.log('요청 본문:', req.body);
-    
-    try {
-        const { manager, client, project, equipment, date, content } = req.body;
 
+    try {
+        let { manager, client, project, equipment, date, content } = req.body;
+
+        // 필수 항목 검사
         if (!manager || !client || !project || !equipment || !date || !content) {
             console.log('❌ 필수 항목 누락:', { manager, client, project, equipment, date, content });
-            return res.status(400).json({ 
+            return res.status(400).json({
                 message: '필수 항목 누락',
                 missing: {
                     manager: !manager,
@@ -251,16 +251,16 @@ app.post('/api/engineer-record', async (req, res) => {
             });
         }
 
-        console.log("📌 처리할 데이터:", { manager, client, project, equipment, date });
+        // 장비 이름을 대문자로 표준화
+        const equipmentKey = equipment.trim().toUpperCase();
 
-        // 클라이언트 검색 - client_name으로 정확히 찾기
+        // 고객사 문서 조회
         const clientDoc = await Client.findOne({ client_name: client });
 
         if (!clientDoc) {
-            // 디버깅을 위해 모든 클라이언트 출력
             const allClients = await Client.find({}, 'client_name id');
-            console.log("💡 DB에 저장된 클라이언트 목록:", allClients);
-            return res.status(404).json({ 
+            console.log("❌ 고객사를 찾을 수 없습니다:", client);
+            return res.status(404).json({
                 message: `고객사 '${client}'를 찾을 수 없습니다.`,
                 availableClients: allClients.map(c => ({
                     name: c.client_name,
@@ -269,19 +269,20 @@ app.post('/api/engineer-record', async (req, res) => {
             });
         }
 
-        console.log("✅ 클라이언트 찾음:", clientDoc.client_name);
-        console.log("기존 maintenance_data:", JSON.stringify(clientDoc.maintenance_data, null, 2));
+        console.log("✅ 고객사 찾음:", clientDoc.client_name);
 
-        // maintenance_data 구조 확인 및 생성
+        // maintenance_data 구조 초기화
         if (!clientDoc.maintenance_data) {
             clientDoc.maintenance_data = {};
         }
-        
-        if (!clientDoc.maintenance_data[equipment]) {
-            clientDoc.maintenance_data[equipment] = [];
+
+        // 해당 장비 키가 없거나 배열이 아니면 새 배열 생성
+        if (!Array.isArray(clientDoc.maintenance_data[equipmentKey])) {
+            console.log(`⚠️ '${equipmentKey}' 장비에 대한 기록이 없거나 형식이 잘못됨. 새로 생성.`);
+            clientDoc.maintenance_data[equipmentKey] = [];
         }
 
-        // 새로운 기록 추가
+        // 기록 추가
         const newRecord = {
             date,
             cycle: "비정기",
@@ -289,25 +290,25 @@ app.post('/api/engineer-record', async (req, res) => {
             manager
         };
 
-        clientDoc.maintenance_data[equipment].push(newRecord);
+        clientDoc.maintenance_data[equipmentKey].push(newRecord);
 
         // MongoDB에 저장
         await clientDoc.save();
-        
-        console.log(`✅ 기록 저장 성공: ${clientDoc.client_name} - ${equipment}`);
-        console.log("저장된 기록:", newRecord);
+
+        console.log(`✅ 기록 저장 성공: ${clientDoc.client_name} - ${equipmentKey}`);
+        console.log("📄 저장된 기록:", newRecord);
 
         res.json({
             message: "엔지니어 기록 저장 성공",
             savedRecord: newRecord,
             client: clientDoc.client_name,
-            equipment: equipment
+            equipment: equipmentKey
         });
 
     } catch (error) {
         console.error("❌ 기록 저장 오류:", error);
-        res.status(500).json({ 
-            message: "서버 오류", 
+        res.status(500).json({
+            message: "서버 오류",
             error: error.message,
             stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
         });
