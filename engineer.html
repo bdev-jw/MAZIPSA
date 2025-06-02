@@ -183,6 +183,7 @@
 
   <script>
     let currentUser = null;
+    let engineersData = []; // 엔지니어 데이터 배열
 
     // API 기본 URL 설정
     const getApiBaseUrl = () => {
@@ -194,7 +195,7 @@
     };
 
     // 페이지 초기화
-    window.onload = function() {
+    window.onload = async function() {
       // localStorage에서 로그인한 엔지니어 정보 가져오기
       const loggedEngineer = JSON.parse(localStorage.getItem('loggedEngineer'));
       
@@ -203,16 +204,27 @@
         window.location.href = 'index.html';
         return;
       }
+
+      const apiUrl = `${getApiBaseUrl()}/api/engineers`
       
-      // engineers 배열에서 로그인한 엔지니어 찾기
-      currentUser = engineers.find(e => e.id === loggedEngineer.id);
-      
-      if (!currentUser) {
-        alert("엔지니어 정보를 찾을 수 없습니다. 로그인 페이지로 이동합니다.");
-        localStorage.removeItem('loggedEngineer');
-        window.location.href = 'index.html';
-        return;
-      }
+      try {
+      const res = await fetch(apiUrl);
+      if (!res.ok) throw new Error("API 요청 실패");
+      engineersData = await res.json();
+      console.log("✅ API로부터 엔지니어 데이터 수신:", engineersData);
+    } catch (err) {
+      console.warn("❌ API 요청 실패. data.js에서 로컬 데이터 사용");
+      engineersData = typeof engineers !== 'undefined' ? engineers : [];
+    }
+
+    currentUser = engineersData.find(e => e.id === loggedEngineer.id);
+
+    if (!currentUser) {
+      alert("엔지니어 정보를 찾을 수 없습니다.");
+      localStorage.removeItem('loggedEngineer');
+      location.href = 'index.html';
+      return;
+    }
 
       // 프로필 정보 표시
       document.getElementById("profileName").textContent = currentUser.name || '이름 없음';
@@ -224,10 +236,8 @@
         document.getElementById("profileImage").src = currentUser.photo;
       }
 
-      // 고객사 선택 목록 채우기
+      // ✅ 고객사 드롭다운 구성
       const clientSelect = document.getElementById("clientSelect");
-      
-      // assignments가 있는 경우만 처리
       if (currentUser.assignments && currentUser.assignments.length > 0) {
         currentUser.assignments.forEach(assignment => {
           const option = document.createElement("option");
@@ -235,19 +245,16 @@
           option.textContent = assignment.client;
           clientSelect.appendChild(option);
         });
-      } else {
-        console.warn("현재 엔지니어에게 할당된 고객사가 없습니다.");
       }
 
-      // 오늘 날짜를 date input에 기본값으로 세팅
+      // ✅ 오늘 날짜 기본값 설정
       const today = new Date();
       const yyyy = today.getFullYear();
       const mm = String(today.getMonth() + 1).padStart(2, '0');
       const dd = String(today.getDate()).padStart(2, '0');
-      const todayString = `${yyyy}-${mm}-${dd}`;
-      document.getElementById("date").value = todayString;
+      document.getElementById("date").value = `${yyyy}-${mm}-${dd}`;
 
-      // 디버깅 정보 표시 (개발용)
+      // ✅ 디버깅 정보 표시
       showDebugInfo();
     };
 
@@ -256,9 +263,9 @@
       const apiUrl = getApiBaseUrl();
       debugDiv.innerHTML = `
         <strong>디버깅 정보:</strong><br>
-        API URL: ${apiUrl}<br>
+        API URL: ${apiUrl}/api/engineers<br>
         현재 사용자: ${currentUser ? currentUser.name : 'None'}<br>
-        할당된 고객사: ${currentUser && currentUser.assignments ? currentUser.assignments.map(a => a.client).join(', ') : 'None'}
+        할당된 고객사: ${currentUser?.assignments?.map(a => a.client).join(', ') || '없음'}
       `;
       // 개발 환경에서만 보이도록
       if (window.location.hostname.includes('localhost')) {
