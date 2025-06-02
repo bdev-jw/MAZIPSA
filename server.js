@@ -82,6 +82,7 @@ const initializeData = async () => {
     const existingClients = await Client.countDocuments();
     const existingEngineers = await Engineer.countDocuments();
 
+    // 기존 데이터가 있는지 확인
     if (existingClients > 0 && existingEngineers > 0) {
       console.log('✅ 기존 데이터가 존재하므로 초기화를 건너뜁니다.');
       return;
@@ -116,6 +117,8 @@ const initializeData = async () => {
     if (existingEngineers === 0) {
       await Engineer.insertMany(data.engineers);
       console.log(`🚀 총 ${data.engineers.length}명 엔지니어 저장 완료`);
+    } else {
+      console.log('✅ 기존 엔지니어 데이터가 존재하므로 초기화를 건너뜁니다.');
     }
 
   } catch (error) {
@@ -210,8 +213,9 @@ app.post('/api/maintenance/:clientId', async (req, res) => {
 });
 
 // ✅ 엔지니어 목록 조회
-app.get('/api/engineers', (req, res) => {
+app.get('/api/engineers', async (req, res) => {
     try {
+        const engineers = await Engineer.find({});
         if (!data.engineers || data.engineers.length === 0) {
             return res.status(404).json({ message: '엔지니어 정보 없음' });
         }
