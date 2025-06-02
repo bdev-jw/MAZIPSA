@@ -7,130 +7,141 @@ const path = require('path');
 const fs = require('fs');
 
 const app = express();
+const data = require('./data.js');
 
-// ✅ CORS 설정을 가장 먼저 적용 (다른 미들웨어보다 앞에 위치)
 const allowedOrigins = [
   'http://localhost:3000',
   'http://127.0.0.1:5500',
   'http://localhost:5500',
-  'https://ma-helper.netlify.app' // 정확한 origin 추가
+  'https://ma-helper.netlify.app'
 ];
 
 app.use(cors({
-    origin: function(origin, callback) {
-        if (!origin || allowedOrigins.includes(origin)) {
-            callback(null, true);
-        } else {
-            callback(new Error('CORS 정책에 의해 차단됨: ' + origin));
-        }
-    },
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
-    credentials: true
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('CORS 정책에 의해 차단됨: ' + origin));
+    }
+  },
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+  credentials: true
 }));
 
-// ✅ Preflight 요청 처리
 app.options('*', cors());
 
-// ✅ 수동 CORS 헤더 설정 (추가 보장)
 app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept');
-    res.header('Access-Control-Allow-Credentials', 'true');
-    
-    // OPTIONS 요청은 즉시 응답
-    if (req.method === 'OPTIONS') {
-        return res.status(200).end();
-    }
-    
-    next();
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept');
+  res.header('Access-Control-Allow-Credentials', 'true');
+
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
+  next();
 });
 
 app.use(express.json());
 
-const data = require('./data.js');
-
 // ✅ MongoDB 연결
 const mongoURI = process.env.MONGODB_URI;
 if (!mongoURI) {
-    console.error("❌ 환경 변수 MONGODB_URI가 없습니다!");
-    process.exit(1);
+  console.error("❌ 환경 변수 MONGODB_URI가 없습니다!");
+  process.exit(1);
 }
-
-mongoose.connect(mongoURI)
-    .then(() => {
-        console.log('✅ MongoDB Atlas 연결됨');
-        initializeData().then(() => {
-            const port = process.env.PORT || 3000;
-            app.listen(port, '0.0.0.0', () => {
-                console.log(`🚀 서버 실행 중 (포트 ${port})...`);
-                console.log(`🌐 접근 가능한 주소: http://localhost:${port}`);
-            });
-        }).catch(error => {
-            console.error('❌ 초기화 오류:', error);
-            process.exit(1);
-        });
-    })
-    .catch(err => {
-        console.error('❌ MongoDB 연결 실패:', err);
-        process.exit(1);
-    });
 
 // ✅ 스키마 정의
 const ClientSchema = new mongoose.Schema({
-    id: { type: String, required: true, unique: true },
-    client_name: String,
-    password: { type: String, required: true },
-    business_info: Object,
-    maintenance_data: { type: Object, default: {} }
+  id: { type: String, required: true, unique: true },
+  client_name: String,
+  password: { type: String, required: true },
+  business_info: Object,
+  maintenance_data: { type: Object, default: {} }
 });
 const Client = mongoose.model('Client', ClientSchema);
 
-// ✅ 초기 데이터 삽입 - 수정된 부분
+const EngineerSchema = new mongoose.Schema({
+  id: { type: String, required: true, unique: true },
+  password: String,
+  name: String,
+  gender: String,
+  position: String,
+  experience: String,
+  photo: String,
+  assignments: Array
+});
+const Engineer = mongoose.model('Engineer', EngineerSchema);
+
+// ✅ 데이터 초기화
 const initializeData = async () => {
-    console.log('📌 데이터 초기화 시작...');
-    try {
-        const existingCount = await Client.countDocuments();
-        if (existingCount > 0) {
-            console.log('✅ 기존 데이터가 존재하므로 초기화를 건너뜁니다.');
-            return;
-        }
+  console.log('📌 데이터 초기화 시작...');
+  try {
+    const existingClients = await Client.countDocuments();
+    const existingEngineers = await Engineer.countDocuments();
 
-        let insertCount = 0;
-        for (const key in data.clients) {
-            const clientData = { ...data.clients[key] }; // 깊은 복사
-
-            // maintenance_data 구조 변환
-            if (!clientData.maintenance_data) {
-                clientData.maintenance_data = {};
-            }
-
-            // equipment 구조를 서버 형식으로 변환
-            const convertedMaintenanceData = {};
-            for (const equipKey in clientData.maintenance_data) {
-                const equipData = clientData.maintenance_data[equipKey];
-                if (equipData && equipData.name && equipData.records) {
-                    convertedMaintenanceData[equipData.name] = equipData.records;
-                } else if (equipData && equipData.name) {
-                    // records가 없는 경우 빈 배열로 초기화
-                    convertedMaintenanceData[equipData.name] = [];
-                }
-            }
-            clientData.maintenance_data = convertedMaintenanceData;
-
-            const newClient = new Client(clientData);
-            await newClient.save();
-            insertCount++;
-            console.log(`✅ ${newClient.id} (${newClient.client_name}) 저장됨`);
-        }
-
-        console.log(`🚀 총 ${insertCount}개 클라이언트 저장 완료`);
-    } catch (error) {
-        console.error('❌ 데이터 삽입 오류:', error);
-        throw error;
+    if (existingClients > 0 && existingEngineers > 0) {
+      console.log('✅ 기존 데이터가 존재하므로 초기화를 건너뜁니다.');
+      return;
     }
+
+    // === 클라이언트 삽입 ===
+    if (existingClients === 0) {
+      let insertCount = 0;
+      for (const key in data.clients) {
+        const clientData = { ...data.clients[key] };
+
+        const convertedMaintenanceData = {};
+        for (const equipKey in clientData.maintenance_data) {
+          const equipData = clientData.maintenance_data[equipKey];
+          if (equipData && equipData.name && equipData.records) {
+            convertedMaintenanceData[equipData.name] = equipData.records;
+          } else if (equipData && equipData.name) {
+            convertedMaintenanceData[equipData.name] = [];
+          }
+        }
+        clientData.maintenance_data = convertedMaintenanceData;
+
+        const newClient = new Client(clientData);
+        await newClient.save();
+        insertCount++;
+        console.log(`✅ ${newClient.id} (${newClient.client_name}) 저장됨`);
+      }
+      console.log(`🚀 총 ${insertCount}개 클라이언트 저장 완료`);
+    }
+
+    // === 엔지니어 삽입 ===
+    if (existingEngineers === 0) {
+      await Engineer.insertMany(data.engineers);
+      console.log(`🚀 총 ${data.engineers.length}명 엔지니어 저장 완료`);
+    }
+
+  } catch (error) {
+    console.error('❌ 초기화 오류:', error);
+    throw error;
+  }
 };
+
+mongoose.connect(mongoURI)
+  .then(() => {
+    console.log('✅ MongoDB Atlas 연결됨');
+    initializeData().then(() => {
+      const port = process.env.PORT || 3000;
+      app.listen(port, '0.0.0.0', () => {
+        console.log(`🚀 서버 실행 중 (포트 ${port})...`);
+        console.log(`🌐 접근 가능한 주소: http://localhost:${port}`);
+      });
+    }).catch(error => {
+      console.error('❌ 초기화 오류:', error);
+      process.exit(1);
+    });
+  })
+  .catch(err => {
+    console.error('❌ MongoDB 연결 실패:', err);
+    process.exit(1);
+  });
 
 // ✅ 고객사 로그인
 app.post('/api/login', async (req, res) => {
