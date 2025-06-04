@@ -150,6 +150,23 @@
 </div>
 
 <script>
+
+  // 서버 주소 (백엔드 API Ping)
+  const backendPingUrl = "https://ma-helper.onrender.com/api/test";
+
+  // 페이지 로드 시 백엔드 서버 깨우기
+  window.addEventListener("DOMContentLoaded", () => {
+    fetch(backendPingUrl)
+      .then(res => res.json())
+      .then(data => {
+        console.log("✅ 백엔드 서버 깨움:", data);
+      })
+      .catch(err => {
+        console.warn("⚠️ 백엔드 깨우기 실패:", err);
+      });
+  });
+
+  
   // 탭 전환
   function switchTab(type) {
     document.getElementById('clientForm').classList.toggle('active', type === 'client');
