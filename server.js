@@ -216,10 +216,10 @@ app.post('/api/maintenance/:clientId', async (req, res) => {
 app.get('/api/engineers', async (req, res) => {
     try {
         const engineers = await Engineer.find({});
-        if (!data.engineers || data.engineers.length === 0) {
+        if (!engineers || engineers.length === 0) {
             return res.status(404).json({ message: '엔지니어 정보 없음' });
         }
-        res.json(data.engineers);
+        res.json(engineers);
     } catch (error) {
         console.error('엔지니어 목록 조회 오류:', error);
         res.status(500).json({ message: '서버 오류', error: error.message });
