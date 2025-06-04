@@ -125,6 +125,27 @@
       font-size: 12px;
       display: none; /* 디버깅 시에만 보이도록 */
     }
+    .toast {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background-color: #00e6c3;
+      color: #1a1a1f;
+      padding: 16px 24px;
+      border-radius: 10px;
+      font-weight: bold;
+      box-shadow: 0 0 12px rgba(0, 230, 195, 0.4);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.5s ease, transform 0.5s ease;
+      z-index: 9999;
+    }
+
+    .toast.show {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0);
+    }
   </style>
 </head>
 <body>
@@ -179,6 +200,9 @@
   
       <button onclick="submitRecord()">등록하기</button>
     </div>
+
+    <!-- 알림 메시지 박스 -->
+     <div id="toast" class="toast"></div>
   </div>
 
   <script>
@@ -324,6 +348,15 @@
       }
     }
 
+    function showToast(message) {
+      const toast = document.getElementById("toast");
+      toast.textContent = message;
+      toast.classList.add("show");
+      setTimeout(() => {
+        toast.classList.remove("show");
+      }, 3000);
+    }
+
     async function submitRecord() {
       // 전역 변수 currentUser를 사용
       if (!currentUser) {
@@ -377,7 +410,7 @@
           const data = await response.json();
           console.log("성공 응답:", data);
           
-          alert("기록이 저장되었습니다.");
+          showToast("기록이 저장되었습니다.");
           document.getElementById("content").value = ""; // 내용 초기화
 
       } catch (error) {
