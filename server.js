@@ -227,19 +227,26 @@ app.get('/api/engineers', async (req, res) => {
 });
 
 // ✅ 엔지니어 로그인 확인
-app.post('/api/engineer-login', (req, res) => {
+app.post('/api/engineer-login', async(req, res) => {
     try {
         const { id, password } = req.body;
-        const found = data.engineers.find(e => e.id === id && e.password === password);
-        if (found) {
-            res.json({ id: found.id, name: found.name });
-        } else {
-            res.status(401).json({ message: 'ID 또는 비밀번호가 잘못되었습니다.' });
-        }
-    } catch (error) {
-        console.error('엔지니어 로그인 오류:', error);
-        res.status(500).json({ message: '서버 오류', error: error.message });
+        // MongoDB에서 엔지니어 찾기
+    const engineer = await Engineer.findOne({ id, password });
+
+    if (engineer) {
+      res.json({
+        id: engineer.id,
+        name: engineer.name,
+        assignments: engineer.assignments || []
+      });
+    } else {
+      res.status(401).json({ message: 'ID 또는 비밀번호가 잘못되었습니다.' });
     }
+
+  } catch (error) {
+    console.error('엔지니어 로그인 오류:', error);
+    res.status(500).json({ message: '서버 오류', error: error.message });
+  }
 });
 
 // ✅ 엔지니어 기록 저장 API - 완전히 수정된 버전
