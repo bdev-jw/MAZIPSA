@@ -443,35 +443,41 @@
 
     <div class="container">
         <div class="left-panel">
-            <!-- 업무 등록 폼 -->
             <div class="card">
                 <div class="card-header">업무 기록 등록</div>
                 <div class="card-body">
                     <div id="formMessage"></div>
                     
                     <div class="form-group">
-                        <label for="projectSelect">프로젝트명 *</label>
-                        <select id="projectSelect" required>
+                        <label for="clientSelect">고객사 선택 *</label>
+                        <select id="clientSelect" onchange="updateProjects()" required>
+                            <option value="">고객사를 선택하세요</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="projectSelect">프로젝트 선택 *</label>
+                        <select id="projectSelect" onchange="updateEquipments()" required disabled>
                             <option value="">프로젝트를 선택하세요</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="equipmentSelect">장비 선택 *</label>
+                        <select id="equipmentSelect" required disabled>
+                             <option value="">장비를 선택하세요</option>
                         </select>
                     </div>
                     
                     <div class="form-row">
-                        <div class="form-group">
-                            <label for="clientName">고객명 *</label>
-                            <select id="clientName" required>
-                                <option value="">고객을 선택하세요</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
+                         <div class="form-group">
                             <label for="performer">수행자 *</label>
                             <input type="text" id="performer" placeholder="수행자명" required>
                         </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="workDate">수행일자 *</label>
-                        <input type="date" id="workDate" required>
+                        <div class="form-group">
+                            <label for="workDate">수행일자 *</label>
+                            <input type="date" id="workDate" required>
+                        </div>
                     </div>
                     
                     <div class="form-group">
@@ -485,7 +491,6 @@
         </div>
 
         <div class="right-panel">
-            <!-- 통계 -->
             <div class="card">
                 <div class="card-header">업무 통계</div>
                 <div class="card-body">
@@ -510,7 +515,6 @@
                 </div>
             </div>
 
-            <!-- 달력 -->
             <div class="card">
                 <div class="calendar-header">
                     <div class="calendar-nav">
@@ -525,7 +529,6 @@
                 </div>
             </div>
 
-            <!-- 최근 업무 목록 -->
             <div class="card">
                 <div class="card-header">최근 업무 기록</div>
                 <div class="card-body">
@@ -544,7 +547,7 @@
         let selectedDate = null;
         let currentUser = null;
         let isEngineer = false;
-        let availableClients = [];
+        let engineerAssignments = []; // 엔지니어의 할당 정보 저장
         
         const API_BASE = 'https://ma-helper.onrender.com/api';
 
@@ -556,7 +559,6 @@
 
         // 인증 확인
         function checkAuth() {
-            // 엔지니어 로그인 확인
             const engineerData = localStorage.getItem('loggedEngineer');
             if (engineerData) {
                 currentUser = JSON.parse(engineerData);
@@ -565,16 +567,16 @@
                 return;
             }
 
-            // 고객사 로그인 확인
             const clientData = localStorage.getItem('loggedClient');
             if (clientData) {
                 currentUser = JSON.parse(clientData);
                 isEngineer = false;
-                document.getElementById('currentUser').textContent = `고객사: ${currentUser.client_name}`;
+                 document.getElementById('currentUser').textContent = `고객사: ${currentUser.client_name}`;
+                // 고객사는 이 페이지의 모든 기능을 사용할 수 없으므로 리디렉션하거나 UI를 비활성화해야 합니다.
+                // 여기서는 엔지니어 기능에 집중합니다.
                 return;
             }
 
-            // 로그인되지 않은 경우 로그인 페이지로 이동
             alert('로그인이 필요합니다.');
             window.location.href = 'index.html';
         }
@@ -585,7 +587,6 @@
             document.getElementById('workDate').value = today.toISOString().split('T')[0];
             document.getElementById('currentDate').textContent = formatFullDate(today);
             
-            // 현재 사용자 이름을 수행자 필드에 자동 입력
             if (currentUser) {
                 document.getElementById('performer').value = isEngineer ? currentUser.name : currentUser.client_name;
             }
@@ -596,8 +597,10 @@
         // 초기 데이터 로드
         async function loadInitialData() {
             try {
-                await loadClients();
-                await loadWorkRecords();
+                if (isEngineer) {
+                    await loadEngineerData(); // 엔지니어 데이터 로드 (고객사/프로젝트/장비 목록용)
+                }
+                await loadWorkRecords(); // 기존 업무 기록 로드
                 updateCalendar();
                 updateStats();
             } catch (error) {
@@ -606,69 +609,99 @@
             }
         }
 
-        // 고객사 목록 로드
-        async function loadClients() {
+        // 엔지니어 데이터 및 담당 고객사/프로젝트 로드
+        async function loadEngineerData() {
             try {
-                const response = await fetch(`${API_BASE}/clients`);
-                if (response.ok) {
-                    const data = await response.json();
-                    availableClients = data.clients;
+                const response = await fetch(`${API_BASE}/engineers`);
+                if (!response.ok) throw new Error('엔지니어 정보를 불러올 수 없습니다.');
+                
+                const engineers = await response.json();
+                const engineerInfo = engineers.find(e => e.id === currentUser.id);
+
+                if (engineerInfo && engineerInfo.assignments) {
+                    engineerAssignments = engineerInfo.assignments;
+                    const clientSelect = document.getElementById('clientSelect');
+                    clientSelect.innerHTML = '<option value="">고객사를 선택하세요</option>';
                     
-                    const clientSelect = document.getElementById('clientName');
-                    const projectSelect = document.getElementById('projectSelect');
-                    
-                    clientSelect.innerHTML = '<option value="">고객을 선택하세요</option>';
-                    projectSelect.innerHTML = '<option value="">프로젝트를 선택하세요</option>';
-                    
-                    const projects = new Set();
-                    
-                    availableClients.forEach(client => {
+                    engineerAssignments.forEach(assignment => {
                         const option = document.createElement('option');
-                        option.value = client.client_name;
-                        option.textContent = client.client_name;
+                        option.value = assignment.client;
+                        option.textContent = assignment.client;
                         clientSelect.appendChild(option);
-                        
-                        if (client.business_info && client.business_info.project_name) {
-                            projects.add(client.business_info.project_name);
-                        }
-                    });
-                    
-                    // 기본 프로젝트 목록 추가
-                    const defaultProjects = [
-                        'AI 챗봇 개발', '모바일 앱 리뉴얼', '웹사이트 구축',
-                        '데이터 분석 시스템', '마케팅 자동화 툴', 'ERP 시스템 개발'
-                    ];
-                    
-                    [...projects, ...defaultProjects].forEach(project => {
-                        if (project) {
-                            const option = document.createElement('option');
-                            option.value = project;
-                            option.textContent = project;
-                            projectSelect.appendChild(option);
-                        }
                     });
                 }
             } catch (error) {
-                console.error('고객사 목록 로드 실패:', error);
+                console.error('엔지니어 데이터 로드 실패:', error);
+                showMessage(error.message, 'error');
             }
         }
 
-        // 모든 업무 기록 로드 (엔지니어용)
+        // 고객사 선택 시 프로젝트 드롭다운 업데이트
+        function updateProjects() {
+            const selectedClient = document.getElementById("clientSelect").value;
+            const projectSelect = document.getElementById("projectSelect");
+            const equipmentSelect = document.getElementById("equipmentSelect");
+            
+            projectSelect.innerHTML = '<option value="">프로젝트를 선택하세요</option>';
+            equipmentSelect.innerHTML = '<option value="">장비를 선택하세요</option>';
+            projectSelect.disabled = true;
+            equipmentSelect.disabled = true;
+
+            if (!selectedClient) return;
+
+            const clientData = engineerAssignments.find(a => a.client === selectedClient);
+            if (clientData && clientData.projects) {
+                clientData.projects.forEach(project => {
+                    const option = document.createElement("option");
+                    option.value = project.projectName;
+                    option.textContent = project.projectName;
+                    projectSelect.appendChild(option);
+                });
+                projectSelect.disabled = false;
+            }
+        }
+
+        // 프로젝트 선택 시 장비 드롭다운 업데이트
+        function updateEquipments() {
+            const selectedClient = document.getElementById("clientSelect").value;
+            const selectedProject = document.getElementById("projectSelect").value;
+            const equipmentSelect = document.getElementById("equipmentSelect");
+
+            equipmentSelect.innerHTML = '<option value="">장비를 선택하세요</option>';
+            equipmentSelect.disabled = true;
+
+            if (!selectedClient || !selectedProject) return;
+
+            const clientData = engineerAssignments.find(a => a.client === selectedClient);
+            if (clientData) {
+                const projectData = clientData.projects.find(p => p.projectName === selectedProject);
+                if (projectData && projectData.equipments) {
+                    projectData.equipments.forEach(equipment => {
+                        const option = document.createElement("option");
+                        option.value = equipment;
+                        option.textContent = equipment;
+                        equipmentSelect.appendChild(option);
+                    });
+                    equipmentSelect.disabled = false;
+                }
+            }
+        }
+
+        // 모든 업무 기록 로드
         async function loadWorkRecords() {
             try {
-                // 실제로는 서버에서 엔지니어 기록을 조회하는 API가 필요합니다.
-                // 현재는 임시 데이터를 사용합니다.
+                // 실제로는 서버에서 엔지니어의 기록을 조회하는 API를 호출해야 합니다.
+                // 현재는 로컬 데모 데이터를 사용합니다.
                 workRecords = [
                     {
                         id: 1,
                         project: 'AI 챗봇 개발',
                         client: '테크컴퍼니',
                         date: '2024-06-01',
-                        performer: currentUser ? (isEngineer ? currentUser.name : currentUser.client_name) : '담당자',
-                        content: 'React 컴포넌트 설계 및 기본 UI 구현. 사용자 메시지 처리 로직 개발 완료.'
+                        performer: currentUser.name,
+                        content: 'React 컴포넌트 설계 및 기본 UI 구현.'
                     }
                 ];
-                
                 updateWorkList();
             } catch (error) {
                 console.error('업무 기록 로드 실패:', error);
@@ -678,13 +711,14 @@
 
         // 업무 기록 추가
         async function addWork() {
+            const client = document.getElementById('clientSelect').value;
             const project = document.getElementById('projectSelect').value;
-            const client = document.getElementById('clientName').value;
+            const equipment = document.getElementById('equipmentSelect').value;
             const date = document.getElementById('workDate').value;
             const performer = document.getElementById('performer').value;
             const content = document.getElementById('workContent').value;
 
-            if (!project || !client || !date || !performer || !content) {
+            if (!client || !project || !equipment || !date || !performer || !content) {
                 showMessage('모든 필수 항목을 입력해주세요.', 'error');
                 return;
             }
@@ -695,7 +729,6 @@
 
             try {
                 if (isEngineer) {
-                    // 엔지니어 기록 저장
                     const response = await fetch(`${API_BASE}/engineer-record`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -703,7 +736,7 @@
                             manager: performer,
                             client: client,
                             project: project,
-                            equipment: 'SYSTEM', // 기본값
+                            equipment: equipment,
                             date: date,
                             content: content
                         })
@@ -712,15 +745,8 @@
                     if (response.ok) {
                         showMessage('업무 기록이 저장되었습니다.', 'success');
                         clearForm();
-                        
-                        // 로컬 기록에도 추가
                         const newWork = {
-                            id: Date.now(),
-                            project: project,
-                            client: client,
-                            date: date,
-                            performer: performer,
-                            content: content
+                            id: Date.now(), project, client, date, performer, content
                         };
                         workRecords.unshift(newWork);
                         
@@ -732,26 +758,7 @@
                         showMessage(`저장 실패: ${errorData.message}`, 'error');
                     }
                 } else {
-                    // 고객사는 자체 기록만 저장 (로컬)
-                    const newWork = {
-                        id: Date.now(),
-                        project: project,
-                        client: client,
-                        date: date,
-                        performer: performer,
-                        content: content
-                    };
-
-                    workRecords.unshift(newWork);
-                    
-                    // 로컬 스토리지에 저장
-                    localStorage.setItem(`workRecords_${currentUser.id}`, JSON.stringify(workRecords));
-                    
-                    showMessage('업무 기록이 저장되었습니다.', 'success');
-                    clearForm();
-                    updateWorkList();
-                    updateCalendar();
-                    updateStats();
+                   showMessage('고객사는 기록을 추가할 수 없습니다.', 'error');
                 }
             } catch (error) {
                 console.error('업무 저장 오류:', error);
@@ -765,9 +772,12 @@
         // 폼 초기화
         function clearForm() {
             document.getElementById('projectSelect').value = '';
-            document.getElementById('clientName').value = '';
+            document.getElementById('clientSelect').value = '';
+            document.getElementById('equipmentSelect').value = '';
             document.getElementById('workContent').value = '';
-            // 수행자와 날짜는 유지
+            // 날짜와 수행자는 유지
+            document.getElementById('projectSelect').disabled = true;
+            document.getElementById('equipmentSelect').disabled = true;
         }
 
         // 메시지 표시
@@ -785,12 +795,10 @@
         // 업무 목록 업데이트
         function updateWorkList() {
             const workList = document.getElementById('workList');
-            
             if (workRecords.length === 0) {
                 workList.innerHTML = '<div class="no-data">등록된 업무 기록이 없습니다.</div>';
                 return;
             }
-
             workList.innerHTML = workRecords.slice(0, 8).map(work => `
                 <div class="work-item">
                     <div class="work-header">
@@ -817,10 +825,8 @@
         function updateCalendar() {
             const calendar = document.getElementById('calendar');
             const calendarTitle = document.getElementById('calendarTitle');
-            
             const year = currentDate.getFullYear();
             const month = currentDate.getMonth();
-            
             calendarTitle.textContent = `${year}년 ${month + 1}월`;
             
             const firstDay = new Date(year, month, 1);
@@ -830,48 +836,30 @@
             
             const days = ['일', '월', '화', '수', '목', '금', '토'];
             const today = new Date();
-            
             let calendarHTML = '';
             
-            // 요일 헤더
             days.forEach(day => {
                 calendarHTML += `<div class="calendar-day-header">${day}</div>`;
             });
             
-            // 날짜들
             for (let i = 0; i < 42; i++) {
                 const date = new Date(startDate);
                 date.setDate(startDate.getDate() + i);
                 const dateString = date.toISOString().split('T')[0];
-                
-                // 해당 날짜의 업무 기록 찾기
                 const dayWorks = workRecords.filter(work => work.date === dateString);
                 
                 let classes = 'calendar-day';
-                if (date.getMonth() !== month) {
-                    classes += ' other-month';
-                }
-                if (date.toDateString() === today.toDateString()) {
-                    classes += ' today';
-                }
-                if (selectedDate && date.toDateString() === selectedDate.toDateString()) {
-                    classes += ' selected';
-                }
+                if (date.getMonth() !== month) classes += ' other-month';
+                if (date.toDateString() === today.toDateString()) classes += ' today';
+                if (selectedDate && date.toDateString() === selectedDate.toDateString()) classes += ' selected';
                 
                 let dayContent = `<div class="day-number">${date.getDate()}</div>`;
-                
                 if (dayWorks.length > 0) {
                     dayContent += `<div class="work-count">${dayWorks.length}</div>`;
-                    if (dayWorks.length === 1) {
-                        dayContent += `<div class="work-preview">${dayWorks[0].project}</div>`;
-                    } else {
-                        dayContent += `<div class="work-preview">${dayWorks[0].project} 외 ${dayWorks.length - 1}건</div>`;
-                    }
+                    dayContent += `<div class="work-preview">${dayWorks[0].project} 외 ${dayWorks.length - 1}건</div>`;
                 }
-                
                 calendarHTML += `<div class="${classes}" onclick="selectDate('${dateString}')">${dayContent}</div>`;
             }
-            
             calendar.innerHTML = calendarHTML;
         }
 
@@ -899,22 +887,15 @@
             updateCalendar();
         }
 
+        // 통계 업데이트
         function updateStats() {
             const now = new Date();
             const thisMonth = workRecords.filter(work => {
                 const workDate = new Date(work.date);
                 return workDate.getMonth() === now.getMonth() && workDate.getFullYear() === now.getFullYear();
             });
-            
-            const thisWeek = workRecords.filter(work => {
-                const workDate = new Date(work.date);
-                const weekStart = new Date(now);
-                weekStart.setDate(now.getDate() - now.getDay());
-                const weekEnd = new Date(weekStart);
-                weekEnd.setDate(weekStart.getDate() + 6);
-                return workDate >= weekStart && workDate <= weekEnd;
-            });
-            
+            const thisWeekStart = new Date(now.setDate(now.getDate() - now.getDay()));
+            const thisWeek = workRecords.filter(work => new Date(work.date) >= thisWeekStart);
             const uniqueProjects = [...new Set(workRecords.map(work => work.project))];
             
             document.getElementById('totalWorks').textContent = workRecords.length;
