@@ -349,7 +349,7 @@ app.get('/api/test', (req, res) => {
 // ⭐ 주기적으로 서버를 깨우는 로직 추가 ⭐
 // 렌더에서 배포된 실제 서비스의 URL로 바꿔줘야 해!
 // 예를 들어, 'https://너의서비스이름.onrender.com' 이런 식일 거야.
-const SERVICE_URL = process.env.SERVICE_URL || 'https://mazipsa.onrender.com'
+const SERVICE_URL = process.env.SERVICE_URL || 'https://ma-helper.onrender.com'
 const PING_INTERVAL = process.env.PING_INTERVAL || 5 * 60 * 1000; // 5분마다 한 번씩 (밀리초)
 
 function pingServer() {
