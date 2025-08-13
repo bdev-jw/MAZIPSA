@@ -1,432 +1,2263 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>유지보수 기록 작성</title>
-  <script src="/data.js"></script> <!-- ✅ data.js 먼저 로드 -->
-  <style>
-    body {
-      font-family: 'Arial', sans-serif;
-      margin: 0;
-      padding: 0;
-      background-color: #1a1a1f;
-      color: #fff;
-    }
-    
-    .container {
-      max-width: 480px;
-      margin: 0 auto;
-      padding: 20px;
-    }
-    
-    .app-title {
-      color: #00e6c3;
-      margin-bottom: 20px;
-      font-size: 24px;
-      font-weight: bold;
-    }
-    
-    .profile {
-      display: flex;
-      align-items: center;
-      margin-bottom: 20px;
-    }
-    
-    .profile img {
-      width: 50px;
-      height: 50px;
-      border-radius: 50%;
-      background-color: #9d92ca;
-      margin-right: 15px;
-    }
-    
-    .profile-info {
-      font-size: 14px;
-    }
-    
-    .record-form {
-      background: #2a2a30;
-      padding: 20px;
-      border-radius: 10px;
-    }
-    
-    .form-group {
-      margin-bottom: 15px;
-    }
-    
-    label {
-      font-weight: bold;
-      display: block;
-      margin-bottom: 8px;
-      font-size: 14px;
-    }
-    
-    input, select, textarea {
-      width: 100%;
-      padding: 12px;
-      font-size: 14px;
-      border: none;
-      border-radius: 6px;
-      background-color: #3a3a42;
-      color: #fff;
-      box-sizing: border-box;
-    }
-    
-    input::placeholder, 
-    select::placeholder, 
-    textarea::placeholder {
-      color: #888;
-    }
-    
-    select {
-      appearance: none;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23ffffff' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
-      background-repeat: no-repeat;
-      background-position: right 12px center;
-      padding-right: 30px;
-    }
-    
-    textarea {
-      resize: vertical;
-      height: 100px;
-    }
-    
-    button {
-      background-color: #00e6c3;
-      color: #1a1a1f;
-      padding: 14px 20px;
-      border: none;
-      border-radius: 6px;
-      font-size: 16px;
-      cursor: pointer;
-      width: 100%;
-      font-weight: bold;
-    }
-    
-    button:hover {
-      background-color: #00d4b4;
-    }
-    
-    input[type="date"] {
-      position: relative;
-    }
-    
-    input[type="date"]::-webkit-calendar-picker-indicator {
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24'%3E%3Cpath fill='%23ffffff' d='M20 3h-1V1h-2v2H7V1H5v2H4c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 18H4V8h16v13z'/%3E%3C/svg%3E");
-      opacity: 0.8;
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>업무 수행 기록 시스템</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Malgun Gothic', sans-serif;
+            background: url('public/background.jpg') center center/cover no-repeat fixed,
+                        linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: #3356fe;
+            color: white;
+            padding: 15px 0;
+            box-shadow: 0 4px 20px rgba(90, 103, 216, 0.3);
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo-title-group {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .header h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: white;
+        }
+
+        .header-info {
+            font-size: 0.9rem;
+            opacity: 0.95;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: white;
+            font-weight: bold;
+        }
+
+        .user-info {
+            background: rgba(255,255,255,0.15);
+            padding: 8px 15px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 30px 20px;
+            display: grid;
+            grid-template-columns: 450px 1fr;
+            gap: 30px;
+            min-height: calc(100vh - 80px);
+        }
+
+        .left-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .right-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            border: none;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            overflow: hidden;
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, #5a67d8 0%, #667eea 100%);
+            color: white;
+            padding: 15px 20px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            border-radius: 16px 16px 0 0;
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+        
+        /* AI 카드 특별 스타일 */
+        #aiCardBody {
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 377px;
+        }
+
+        .chat-window {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-height: 100%; /* ← 부모 안에서 넘치지 않게 */
+        }
+
+        .chat-message {
+            padding: 10px 15px;
+            border-radius: 20px;
+            max-width: 100%;
+            line-height: 1.5;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            word-break: break-word;
+            white-space: pre-wrap;
+            box-sizing: border-box;
+        }
+
+        .ai-message {
+            background: linear-gradient(135deg, #e2e8f0 0%, #f7fafc 100%);
+            color: #2d3748;
+            border-bottom-left-radius: 8px;
+            align-self: flex-start;
+            max-width: 100%; /* ← 강제 제한 */
+            box-sizing: border-box;
+            word-break: break-word;
+            white-space: pre-wrap;
+            overflow-wrap: break-word;
+            word-wrap: break-word; /* 구형 브라우저 호환성용 */
+        }
+        /* AI 메시지 안의 코드 블록(<pre>)에만 별도로 적용 */
+        .chat-message.ai-message pre {
+            /* 코드가 너무 길 경우 가로 스크롤바를 생성하여 영역을 벗어나지 않게 함 */
+            overflow-x: auto;
+            
+            /* 코드의 공백은 유지하면서 필요한 경우 자동으로 줄바꿈도 함 */
+            white-space: pre-wrap; 
+
+           
+        }
+
+        /* AI 메시지 안의 인라인 코드(`<code>`) 스타일 (선택 사항) */
+        .chat-message.ai-message code {
+            background-color: #eee;
+            padding: 2px 4px;
+            border-radius: 4px;
+            color: #c7254e;
+        }
+
+        /* 코드 블록 안의 인라인 코드에는 다른 스타일 적용 */
+        .chat-message.ai-message pre code {
+            background-color: transparent;
+            padding: 0;
+            color: inherit;
+        }
+
+        .user-message {
+            background: linear-gradient(135deg, #5a67d8 0%, #667eea 100%);
+            color: white;
+            border-bottom-right-radius: 8px;
+            align-self: flex-end;
+        }
+        .chat-message.ai-message ul, /* ul 또는 ol 태그가 있을 거야! */
+        .chat-message.ai-message ol {
+        padding-left: 20px; /* 불릿 포함해서 전체 목록이 왼쪽에서 40px 밀려남 */
+        }
+
+        .chat-input-container {
+            display: flex;
+            padding: 15px;
+            border-top: 1px solid #e2e8f0;
+            gap: 10px;
+        }
+
+        #chatInput {
+            flex-grow: 1;
+            border-radius: 25px;
+            border: 2px solid #e2e8f0;
+            padding: 10px 15px;
+            font-size: 0.9rem;
+        }
+
+        #sendChatBtn {
+            width: auto;
+            border-radius: 25px;
+            padding: 10px 20px;
+            font-size: 0.9rem;
+            background: linear-gradient(135deg, #5a67d8 0%, #667eea 100%);
+            border: none;
+            color: white;
+            font-weight: 600;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #2d3748;
+            font-size: 0.9rem;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            background-color: white;
+            transition: all 0.3s ease;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #5a67d8;
+            box-shadow: 0 0 0 3px rgba(90, 103, 216, 0.1);
+            transform: translateY(-1px);
+        }
+
+        textarea {
+            width: 100%;
+            resize: vertical;
+            min-height: 120px;
+            font-family: inherit;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #5a67d8 0%, #667eea 100%);
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            width: 100%;
+            box-shadow: 0 4px 15px rgba(90, 103, 216, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(90, 103, 216, 0.4);
+        }
+
+        .btn:disabled {
+            background: linear-gradient(135deg, #a0aec0 0%, #cbd5e0 100%);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .calendar-container {
+            flex: 1;
+        }
+
+        .calendar-header {
+            background: linear-gradient(135deg, #5a67d8 0%, #667eea 100%);
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 16px 16px 0 0;
+        }
+
+        .calendar-nav {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .nav-btn {
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .nav-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: scale(1.05);
+        }
+
+        .calendar-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            min-width: 120px;
+            text-align: center;
+        }
+
+        .calendar-today-btn {
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .calendar-today-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: scale(1.05);
+        }
+
+        .calendar-body {
+            padding: 0;
+            background: white;
+            border-radius: 0 0 16px 16px;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            border-collapse: collapse;
+        }
+
+        .calendar-day-header {
+            background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+            font-weight: 600;
+            color: #4a5568;
+            padding: 15px 8px;
+            text-align: center;
+            font-size: 0.9rem;
+            border: 1px solid #e2e8f0;
+        }
+
+        .calendar-day {
+            min-height: 90px;
+            border: 1px solid #e2e8f0;
+            padding: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            background: white;
+            overflow: hidden;
+        }
+
+        .calendar-day:hover {
+            background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+            transform: scale(1.02);
+        }
+
+        .calendar-day.today {
+            background: linear-gradient(135deg, #bee3f8 0%, #90cdf4 100%);
+            border-color: #3182ce;
+            box-shadow: 0 4px 15px rgba(49, 130, 206, 0.3);
+        }
+
+        .calendar-day.selected {
+            background: linear-gradient(135deg, #90cdf4 0%, #63b3ed 100%);
+            border-color: #2b77cb;
+            box-shadow: 0 4px 15px rgba(43, 119, 203, 0.4);
+        }
+
+        .calendar-day.other-month {
+            background-color: #f7fafc;
+            color: #a0aec0;
+            opacity: 0.6;
+        }
+
+        .day-number {
+            font-weight: 700;
+            font-size: 1rem;
+            margin-bottom: 6px;
+        }
+
+        .work-count {
+            background: linear-gradient(135deg, #5a67d8 0%, #667eea 100%);
+            color: white;
+            font-size: 0.75rem;
+            padding: 3px 8px;
+            border-radius: 15px;
+            display: inline-block;
+            min-width: 20px;
+            text-align: center;
+            margin-top: 4px;
+            font-weight: 600;
+            box-shadow: 0 2px 8px rgba(90, 103, 216, 0.3);
+        }
+
+        .work-preview {
+            font-size: 0.65rem;
+            color: #718096;
+            margin-top: 4px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            line-height: 1.3;
+        }
+
+        .work-list {
+            max-height: 220px;
+            overflow-y: auto;
+            padding: 10px
+        }
+
+        .work-item {
+            border-bottom: 1px solid #e2e8f0;
+            padding: 15px 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-radius: 8px;
+            margin-bottom: 5px;
+        }
+
+        .work-item:hover {
+            background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+            transform: translateX(5px);
+            padding-left: 10px;
+        }
+
+        .work-item:last-child {
+            border-bottom: none;
+        }
+
+        .work-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 8px;
+        }
+
+        .project-name {
+            font-weight: 700;
+            color: #2d3748;
+            font-size: 1rem;
+        }
+
+        .work-date {
+            color: #718096;
+            font-size: 0.8rem;
+            background: linear-gradient(135deg, #edf2f7 0%, #e2e8f0 100%);
+            padding: 4px 10px;
+            border-radius: 15px;
+            font-weight: 600;
+        }
+
+        .work-meta {
+            color: #4a5568;
+            font-size: 0.9rem;
+            margin-bottom: 6px;
+            font-weight: 500;
+        }
+
+        .work-content {
+            color: #2d3748;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #ffffff 0%, #f7fafc 100%);
+            border: 2px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            border-color: #5a67d8;
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #5a67d8 0%, #667eea 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #718096;
+            margin-top: 8px;
+            font-weight: 600;
+        }
+
+        .no-data {
+            text-align: center;
+            color: #a0aec0;
+            padding: 50px 20px;
+            font-style: italic;
+            font-size: 1.1rem;
+        }
+
+        .loading {
+            text-align: center;
+            color: #5a67d8;
+            padding: 30px;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .error {
+            background: linear-gradient(135deg, #fed7d7 0%, #feb2b2 100%);
+            color: #c53030;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border: 2px solid #fc8181;
+            font-weight: 600;
+        }
+
+        .success {
+            background: linear-gradient(135deg, #c6f6d5 0%, #9ae6b4 100%);
+            color: #22543d;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border: 2px solid #68d391;
+            font-weight: 600;
+        }
+
+        .card.no-data-card {
+            flex-grow: 1;
+            min-height: 200px;
+            max-height: 450px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .day-number.saturday {
+            color: #3182ce;
+            font-weight: 800;
+        }
+        .day-number.holiday {
+            color: #e53e3e;
+            font-weight: 800;
+        }
+
+        /* 검색 기능 스타일 */
+        .search-container-inline {
+            display: flex;
+            align-items: center;
+            position: relative;
+            margin-right: 15px;
+        }
+
+        .search-input-inline {
+            width: 0;
+            padding: 10px 15px;
+            border-radius: 25px;
+            border: 2px solid rgba(255,255,255,0.3);
+            background-color: rgba(255,255,255,0.1);
+            color: white;
+            transition: all 0.4s ease;
+            visibility: hidden;
+            opacity: 0;
+            backdrop-filter: blur(10px);
+        }
+
+        .search-input-inline::placeholder {
+            color: rgba(255,255,255,0.7);
+        }
+
+        .search-input-inline.active {
+            width: 250px;
+            visibility: visible;
+            opacity: 1;
+        }
+
+        #searchIcon {
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            filter: brightness(0) invert(1);
+            transition: all 0.3s ease;
+        }
+
+        #searchIcon:hover {
+            transform: scale(1.1);
+        }
+        
+        /* 수정 기능용 모달 스타일 */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            visibility: hidden;
+            opacity: 0;
+            transition: all 0.4s ease;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-overlay.visible {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #ffffff 0%, #f7fafc 100%);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            width: 90%;
+            max-width: 550px;
+            transform: translateY(-50px) scale(0.9);
+            transition: all 0.4s ease;
+        }
+
+        .modal-overlay.visible .modal-content {
+            transform: translateY(0) scale(1);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 20px;
+            margin-bottom: 25px;
+        }
+
+        .modal-header h2 {
+            font-size: 1.5rem;
+            color: #2d3748;
+            font-weight: 700;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 2rem;
+            cursor: pointer;
+            color: #a0aec0;
+            transition: all 0.3s ease;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .close-btn:hover {
+            color: #e53e3e;
+            background-color: #fed7d7;
+            transform: rotate(90deg);
+        }
+        
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        .modal-footer .btn {
+            width: auto;
+            padding: 12px 25px;
+        }
+        .modal-footer .btn-secondary {
+            background: linear-gradient(135deg, #a0aec0 0%, #cbd5e0 100%);
+        }
+        .modal-footer .btn-secondary:hover {
+            background: linear-gradient(135deg, #718096 0%, #a0aec0 100%);
+        }
+
+        .record-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        @media (min-width: 1200px) {
+            .record-container {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+        
+        .work-status {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            margin-left: 10px;
+            color: white;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .work-status.approved { 
+            background: linear-gradient(135deg, #38a169 0%, #48bb78 100%);
+            box-shadow: 0 2px 8px rgba(56, 161, 105, 0.3);
+        }
+        .work-status.rejected { 
+            background: linear-gradient(135deg, #e53e3e 0%, #fc8181 100%);
+            box-shadow: 0 2px 8px rgba(229, 62, 62, 0.3);
+        }
+        
+        .approval-item .work-meta {
+            font-size: 0.95rem;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        
+        .approval-item .work-content {
+            background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .approval-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        .approval-actions .btn {
+            width: auto;
+            padding: 8px 16px;
+            font-size: 0.85rem;
+        }
+        .approval-actions .btn-reject {
+            background: linear-gradient(135deg, #e53e3e 0%, #fc8181 100%);
+            box-shadow: 0 4px 15px rgba(229, 62, 62, 0.3);
+        }
+        .approval-actions .btn-reject:hover {
+            background: linear-gradient(135deg, #c53030 0%, #e53e3e 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(197, 48, 48, 0.4);
+        }
+        
+        #approvalPanel {
+            display: none;
+        }
+
+        /* 페이지네이션 스타일 추가 */
+        .pagination-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px 10px;
+            border-top: 1px solid #e2e8f0;
+            background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+        }
+
+        .pagination-info {
+            font-size: 0.9rem;
+            color: #4a5568;
+            font-weight: 500;
+        }
+
+        .pagination-controls {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+        }
+
+        .pagination-btn {
+            background: linear-gradient(135deg, #5a67d8 0%, #667eea 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.7rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            min-width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .pagination-btn:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(90, 103, 216, 0.4);
+        }
+
+        .pagination-btn:disabled {
+            background: linear-gradient(135deg, #a0aec0 0%, #cbd5e0 100%);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+            opacity: 0.6;
+        }
+
+        .pagination-btn.current {
+            background: linear-gradient(135deg, #38a169 0%, #48bb78 100%);
+            box-shadow: 0 4px 12px rgba(56, 161, 105, 0.4);
+        }
+
+        .pagination-numbers {
+            display: flex;
+            gap: 5px;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            }
+
+            .header {
+                position: sticky;
+                top: 0;
+                z-index: 1000;
+                background: linear-gradient(135deg, #5a67d8 0%, #667eea 100%);
+            }
+
+            .header-content {
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+                justify-content: space-between;
+                flex-wrap: nowrap;
+                gap: 8px;
+                overflow-x: auto;
+                white-space: nowrap;
+                padding: 0 15px;
+            }
+
+            .header h1 {
+                font-size: 1.2rem;
+                margin: 0;
+                flex-shrink: 0;
+            }
+
+            .header-info {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                flex-shrink: 0;
+            }
+
+            .search-container-inline {
+                margin: 0;
+            }
+
+            #searchIcon {
+                width: 22px;
+                height: 22px;
+            }
+
+            .user-info,
+            .header-info > div {
+                font-size: 0.8rem;
+                white-space: nowrap;
+                flex-shrink: 0;
+            }
+
+            .container {
+                grid-template-columns: 1fr;
+                gap: 20px;
+                padding: 20px 15px;
+                overflow-x: hidden;
+            }
+
+            .card {
+                border-radius: 12px;
+            }
+
+            .card-header {
+                border-radius: 12px 12px 0 0;
+                padding: 12px 15px;
+            }
+
+            .card-body {
+                padding: 15px;
+            }
+
+            .btn {
+                padding: 12px 20px;
+                border-radius: 10px;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+
+            .stat-card {
+                padding: 15px;
+                border-radius: 12px;
+            }
+
+            .stat-number {
+                font-size: 2rem;
+            }
+
+            .pagination-container {
+                flex-direction: column;
+                gap: 10px;
+                text-align: center;
+            }
+
+            .pagination-controls {
+                justify-content: center;
+            }
+        }
+        /* ✅ 깔끔하고 간격이 좁은 채팅 메시지 스타일 */
+    .chat-message {
+        padding: 8px 12px;
+        margin: 4px 0;
+        border-radius: 8px;
+        max-width: 80%;
+        line-height: 1.4;
+        font-size: 14px;
+        white-space: pre-line;
+        word-break: break-word;
     }
 
-    .debug-info {
-      background: #444;
-      padding: 10px;
-      border-radius: 5px;
-      margin: 10px 0;
-      font-size: 12px;
-      display: none; /* 디버깅 시에만 보이도록 */
+    .user-message {
+        background-color: #e8f0fe;
+        align-self: flex-end;
+        text-align: right;
     }
 
-    .toast {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      background-color: #90ecde;
-      color: #1a1a1f;
-      padding: 16px 24px;
-      border-radius: 10px;
-      font-weight: bold;
-      box-shadow: 0 0 12px rgba(0, 230, 195, 0.4);
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.5s ease, transform 0.5s ease;
-      z-index: 9999;
-      font-size: 12px;
+    .ai-message {
+        background-color: #f1f3f4;
+        align-self: flex-start;
     }
 
-    .toast.show {
-      opacity: 1;
-      pointer-events: auto;
-      transform: translateY(0);
+    #chatWindow {
+        display: flex;
+        flex-direction: column;
+        padding: 10px;
+        overflow-y: auto;
+        max-height: 400px;
     }
-  </style>
+    /* 시간별 메모 관련 스타일 */
+    #existingMemosContainer {
+        margin-bottom: 25px;
+        padding: 15px;
+        background-color: #f7fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        max-height: 180px;
+        overflow-y: auto;
+    }
+    #existingMemosContainer h4 {
+        margin-top: 0;
+        margin-bottom: 10px;
+        color: #2d3748;
+        font-size: 1rem;
+        border-bottom: 1px solid #e2e8f0;
+        padding-bottom: 8px;
+    }
+    .memo-list {
+        list-style-type: none;
+        padding: 0;
+    }
+    .memo-list li {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 5px;
+        font-size: 0.9rem;
+        border-bottom: 1px solid #edf2f7;
+    }
+    .memo-list li:last-child {
+        border-bottom: none;
+    }
+    .memo-list strong {
+        color: #5a67d8;
+        margin-right: 10px;
+    }
+    .memo-indicator {
+        font-size: 0.75rem;
+        color: #27ae60;
+        font-weight: 600;
+        text-align: right;
+        margin-top: 5px;
+    }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <!-- 앱 타이틀 -->
-    <div class="app-title">MA집사</div>
-  
-    <!-- 프로필 정보 -->
-    <div class="profile">
-      <img id="profileImage" alt="프로필 사진" />
-      <div class="profile-info">
-        <div><strong id="profileName"></strong></div>
-        <div id="profileDetail"></div>
-      </div>
+    <div class="header">
+        <div class="header-content">
+            <div class="logo-title-group">
+                <div class="logo">
+                    <img src="public/logo.png" alt="로고" style="height: 40px; width: auto;">
+            </div>
+            <h1>MA집사</h1>
+            </div>
+            <div class="header-info">
+                <div id="searchContainerInline" class="search-container-inline">
+                    <input type="text" id="searchInputInline" class="search-input-inline" placeholder="기록 검색">
+                </div>
+                <img id="searchIcon" src="public/검색.png" alt="Search">
+                <div class="user-info">
+                    <span id="currentUser"></span>
+                </div>
+                <div>오늘: <span id="currentDate"></span></div>
+            </div>
+        </div>
     </div>
 
-    <!-- 디버깅 정보 (개발용) -->
-    <div id="debugInfo" class="debug-info"></div>
-  
-    <!-- 기록 입력 폼 -->
-    <div class="record-form">
-      <div class="form-group">
-        <label for="clientSelect">고객사 선택</label>
-        <select id="clientSelect" onchange="updateProjects()">
-          <option value="">고객사를 선택하세요</option>
-        </select>
-      </div>
-  
-      <div class="form-group">
-        <label for="projectSelect">프로젝트 선택</label>
-        <select id="projectSelect" onchange="updateEquipments()" disabled>
-          <option value="">프로젝트를 선택하세요</option>
-        </select>
-      </div>
-  
-      <div class="form-group">
-        <label for="equipmentSelect">장비 선택</label>
-        <select id="equipmentSelect" disabled>
-          <option value="">장비를 선택하세요</option>
-        </select>
-      </div>
-  
-      <div class="form-group">
-        <label for="date">날짜</label>
-        <input type="date" id="date" />
-      </div>
-  
-      <div class="form-group">
-        <label for="content">유지보수 내역</label>
-        <textarea id="content" placeholder="유지보수 작업 내용을 입력하세요"></textarea>
-      </div>
-  
-      <button onclick="submitRecord()">등록하기</button>
+    <div class="container">
+        <div class="left-panel">
+            <div class="card">
+                <div class="card-header">업무 기록 등록</div>
+                <div class="card-body">
+                    <div id="formMessage"></div>
+                    
+                    <div class="form-group">
+                        <label for="clientSelect">고객사 선택 *</label>
+                        <select id="clientSelect">
+                            <option value="">고객사를 선택하세요</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="projectSelect">프로젝트 선택 *</label>
+                        <select id="projectSelect" disabled>
+                            <option value="">프로젝트를 선택하세요</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="equipmentSelect">장비 선택 *</label>
+                        <select id="equipmentSelect" disabled>
+                            <option value="">장비를 선택하세요</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="workDate">수행일자 *</label>
+                        <input type="date" id="workDate" />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="workContent_simple">업무 요약 *</label>
+                        <input id="workContent_simple" />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="workContent">상세 내용 *</label>
+                        <textarea id="workContent"></textarea>
+                    </div>
+
+                    <button class="btn" id="saveBtn" onclick="addWork()">업무 기록 저장</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">업무 기록 챗봇</div>
+                <div class="card-body" id="aiCardBody">
+                    <div class="chat-window" id="chatWindow">
+                        <div class="chat-message ai-message">엔지니어님의 업무 기록에 대해 무엇이든 물어보세요</div>
+                    </div>
+                    <div class="chat-input-container">
+                        <input type="text" id="chatInput" placeholder="여기에 질문을 입력하세요...">
+                        <button class="btn" id="sendChatBtn" onclick="handleChatSubmit()">전송</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="right-panel">
+            <div class="card">
+                <div class="card-header">업무 통계</div>
+                <div class="card-body">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <span class="stat-number" id="totalWorks">0</span>
+                            <div class="stat-label">총 기록</div>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-number" id="monthlyWorks">0</span>
+                            <div class="stat-label">이번 달</div>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-number" id="weeklyWorks">0</span>
+                            <div class="stat-label">이번 주</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="calendar-header">
+                    <div class="calendar-nav">
+                        <button class="nav-btn" onclick="previousMonth()">‹</button>
+                        <div class="calendar-title" id="calendarTitle"></div>
+                        <button class="nav-btn" onclick="nextMonth()">›</button>
+                    </div>
+                    <button class="calendar-today-btn" onclick="goToToday()">오늘</button>
+                </div>
+                <div class="calendar-body">
+                    <div class="calendar-grid" id="calendar"></div>
+                </div>
+            </div>
+
+            <div class="record-container">
+                
+                <div class="card">
+                    <div class="card-header">내 업무 기록</div>
+                    <div class="card-body" style="padding: 0;">
+                        <div class="work-list" id="workList">
+                            <div class="loading">업무 기록을 불러오는 중...</div>
+                        </div>
+                        <div class="pagination-container" id="paginationContainer" style="display: none;">
+                            <div class="pagination-info" id="paginationInfo"></div>
+                            <div class="pagination-controls">
+                                <button class="pagination-btn" id="prevPageBtn" onclick="goToPreviousPage()" disabled>‹</button>
+                                <div class="pagination-numbers" id="paginationNumbers"></div>
+                                <button class="pagination-btn" id="nextPageBtn" onclick="goToNextPage()" disabled>›</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card" id="waitPanel">
+                    <div class="card-header">승인 대기</div>
+                        <div class="work-list" id="waitList">
+                            <div class="no-data">기록이 없습니다</div>
+                        </div>
+                    </div>
+
+                <div class="card" id="approvalPanel">
+                    <div class="card-header">팀원 업무 승인</div>
+                        <div class="work-list" id="approvalList">
+                            <div class="no-data">승인 대기 중인 기록이 없습니다.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <!-- 알림 메시지 박스 -->
-     <div id="toast" class="toast"></div>
+    <div id="editModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>업무 기록 수정</h2>
+                <button class="close-btn" onclick="closeEditModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="editFormMessage"></div>
+                <input type="hidden" id="editRecordId">
+                <div class="form-group">
+                    <label for="editWorkDate">수행일자 *</label>
+                    <input type="date" id="editWorkDate">
+                </div>
+                <div class="form-group">
+                    <label for="editWorkContent">상세 내용 *</label>
+                    <textarea id="editWorkContent" style="min-height: 150px;"></textarea>
+                </div>
+                <p style="font-size: 0.8rem; color: #7f8c8d;">* 고객사, 프로젝트, 장비 정보는 수정할 수 없습니다.</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeEditModal()">취소</button>
+                <button class="btn" id="updateBtn" onclick="updateWork()">수정 완료</button>
+            </div>
+        </div>
+    </div>
+    <div id="timeMemoModal" class="modal-overlay">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 id="memoModalTitle">시간별 메모</h2>
+      <button class="close-btn" onclick="closeTimeMemoModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div id="existingMemosContainer" style="display: none;">
+        <h4>저장된 메모</h4>
+        <ul class="memo-list" id="memoList"></ul>
+      </div>
+
+      <div class="form-group">
+        <label for="memoTime">시간</label>
+        <select id="memoTime"></select>
+      </div>
+      <div class="form-group">
+        <label for="memoText">내용</label>
+        <textarea id="memoText" placeholder="간단한 내용을 입력하세요"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeTimeMemoModal()">취소</button>
+      <button class="btn" onclick="saveTimeMemo()">저장</button>
+    </div>
   </div>
+</div>
 
-  <script>
-    let currentUser = null;
-    let engineersData = []; // 엔지니어 데이터 배열
+    <script>
+        // ... 기존 스크립트 상단 부분은 변경 없이 그대로 유지 ...
+        // 전역 변수
+        let workRecords = [];
+        let currentPage = 1;
+        const recordsPerPage = 5;
+        let currentDate = new Date();
+        let selectedDate = null;
+        let currentUser = null;
+        let engineerAssignments = []; // 엔지니어의 할당 정보 저장
+        let isSearchMode = false; // 검색 모드 여부
+        let searchResults = []; // 검색 결과 저장
+        let timeMemos=[]; // 시간별 메모 저장
+        
+        const API_BASE = 'https://mazipsa.onrender.com/api';
 
-    // API 기본 URL 설정
-    const getApiBaseUrl = () => {
-      // Netlify에서 환경변수로 서버 URL 설정하거나, 직접 입력
-      if (window.location.hostname.includes('netlify.app')) {
-        return 'https://ma-helper.onrender.com'; // 여기에 실제 Render URL 입력
-      }
-      return 'http://localhost:3000'; // 로컬 개발용
-    };
+        // --- AI 기능 추가 ---
+    /**
+     * 채팅창에 메시지를 추가하는 헬퍼 함수
+     */
+    // ✅ 대화 히스토리 저장용 변수
+    let chatHistory = [];
 
-    // 페이지 초기화
-    window.onload = async function() {
-      // localStorage에서 로그인한 엔지니어 정보 가져오기
-      const loggedEngineer = JSON.parse(localStorage.getItem('loggedEngineer'));
-      
-      if (!loggedEngineer) {
-        alert("로그인된 정보가 없습니다. 로그인 페이지로 이동합니다.");
-        window.location.href = 'index.html';
-        return;
-      }
+    /**
+    * 채팅창에 메시지를 추가하는 헬퍼 함수
+    */
+    function addChatMessage(message, sender) {
+    const chatWindow = document.getElementById('chatWindow');
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `chat-message ${sender}-message`;
 
-      const apiUrl = `${getApiBaseUrl()}/api/engineers`
-      
-      try {
-      const res = await fetch(apiUrl);
-      if (!res.ok) throw new Error("API 요청 실패");
-      engineersData = await res.json();
-      console.log("✅ API로부터 엔지니어 데이터 수신:", engineersData);
+    // ✅ AI 응답일 경우 Markdown을 HTML로 변환하여 삽입 (보안 처리 포함)
+    if (sender === 'ai') {
+        // marked.js와 DOMPurify 라이브러리가 HTML에 추가되어 있어야 합니다.
+        const rawHtml = marked.parse(message);
+        messageDiv.innerHTML = DOMPurify.sanitize(rawHtml);
+    } else {
+        messageDiv.textContent = message;
+    }
+    
+    chatWindow.appendChild(messageDiv);
+    chatWindow.scrollTop = chatWindow.scrollHeight;
+    
+    // ✅ 히스토리에 저장 (AI의 원본 마크다운 메시지를 저장)
+    chatHistory.push({ role: sender, message });
+}
+
+    /**
+    * 챗봇 제출 처리 함수
+    */
+    async function handleChatSubmit() {
+    const chatInput = document.getElementById('chatInput');
+    const userQuery = chatInput.value.trim();
+    if (!userQuery) return;
+
+    // ✅ 사용자 메시지는 textContent로 기존 방식 유지
+    addChatMessage(userQuery, 'user');
+    chatInput.value = '';
+
+    const relevantRecords = workRecords
+        .filter(r => r.client && r.client !== '기타')
+        .sort((a, b) => new Date(b.date) - new Date(a.date))
+        .map((r, i) => `${i + 1}. [${r.date}] ${r.project} (${r.client}, ${r.equipment}) - ${r.content_simple || r.content}`)
+        .join('\n');
+
+    const historyText = chatHistory
+        .slice(-6) // ✅ 너무 긴 히스토리는 잘라내어 토큰 사용량을 관리합니다.
+        .map(h => `${h.role === 'user' ? '[사용자]' : '[AI]'} ${h.message}`)
+        .join('\n');
+
+        // ✅ 히스토리 + 업무 기록 + 현재 질문 포함한 전체 프롬프트
+        const prompt = `
+    ## 대화 기록
+---
+${historyText}
+---
+
+## 참고용 최근 업무 기록
+---
+${relevantRecords.length > 0 ? relevantRecords : '기록 없음'}
+---
+
+[현재 사용자 질문]
+${userQuery}
+
+## 답변 지침
+1.  **질문 의도 파악:** 먼저 사용자의 질문이 '업무 기록'과 관련이 있는지, 혹은 '일반 지식'이나 '일상 대화'에 대한 것인지 파악하세요.
+2.  **업무 질문:** 질문이 '업무 기록'과 관련 있다면, 해당 기록을 근거로 명확하고 간결하게 사실에 기반하여 답변하세요.
+3.  **일반 질문:** 질문이 업무 기록과 관련 없다면(예: "자바스크립트의 Promise에 대해 설명해줘", "오늘 날씨 어때?", "재미있는 농담 해줘" 등), 당신의 방대한 일반 지식을 활용하여 상세하고 친절하게 답변하세요.
+4.  **맥락 유지:** 이전 '대화 기록'을 참고하여 자연스러운 대화를 이어가세요.
+5.  **답변 형식:**
+    *   **모든 답변은 반드시, 그리고 무조건 마크다운(Markdown) 형식으로 작성해야 합니다. 이 지침은 절대적으로 준수되어야 합니다.**
+    *   **다른 어떤 형식의 답변도 허용되지 않습니다.**
+6.  **언어**:
+    *   **모든 답변은 한국어(ko-KR) 또는 영어(en-US)로만 작성되어야 합니다. 다른 언어는 절대 사용하지 마세요.**
+    *   **어떠한 경우에도 답변에 중국어, 아랍어, 태국어, 일본어를 포함한 기타 외국어를 섞어서 사용해서는 안 됩니다.**
+    *   **단, 고유 명사(예: 특정 인물 이름, 브랜드 명, 또는 보편적으로 사용되는 기술 용어 등)에 한해서는 원래 언어 형태를 사용할 수 있습니다.** 이 경우를 제외하고는 한국어 또는 영어로만 소통해야 합니다.
+7. **정보의 진실성 및 불확실성 처리**:
+    *   제공된 정보 내에서 답변을 구성하고, 사실에 기반하지 않거나 추론이 필요한 내용은 절대로 답변에 포함해서는 안 됩니다.
+    *   만약 질문에 대한 답변을 찾기 위해 필요한 정보가 부족하거나, 알 수 없는 경우에는 솔직하게 "모르겠습니다"라고 답변해야 합니다.
+    *   어떤 경우에도 없는 사실을 지어내거나 추론하여 답변해서는 안 됩니다. 이는 시스템의 신뢰성과 직결되는 가장 중요한 지침입니다.
+8. **질문이 특정 월이나 날짜 범위를 포함하는 경우**, 그 월 또는 범위에 해당하는 기록만 선별하여 참고해야 합니다.
+    * 예: "6월 업무"를 물어보면, 반드시 6월의 기록만 참고해야 하며, 7월이나 5월의 기록은 포함하면 안 됩니다.    
+    `;
+
+        try {
+        const res = await fetch(`${API_BASE}/ai-chat`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ prompt })
+        });
+
+        const data = await res.json();
+        addChatMessage(data.reply, 'ai');
     } catch (err) {
-      console.warn("❌ API 요청 실패. data.js에서 로컬 데이터 사용");
-      engineersData = typeof engineers !== 'undefined' ? engineers : [];
+        console.error('AI 응답 오류:', err);
+        addChatMessage('AI 응답에 실패했습니다. 다시 시도해 주세요.', 'ai');
     }
+}
 
-    currentUser = engineersData.find(e => e.id === loggedEngineer.id);
-
-    if (!currentUser) {
-      alert("엔지니어 정보를 찾을 수 없습니다.");
-      localStorage.removeItem('loggedEngineer');
-      location.href = 'index.html';
-      return;
-    }
-
-      // 프로필 정보 표시
-      document.getElementById("profileName").textContent = currentUser.name || '이름 없음';
-      document.getElementById("profileDetail").textContent = 
-        `${currentUser.gender || ''} / ${currentUser.position || ''} / ${currentUser.experience || ''}`;
-      
-      // 프로필 사진 설정 (사진이 있는 경우만)
-      if (currentUser.photo) {
-        document.getElementById("profileImage").src = currentUser.photo;
-      }
-
-      // ✅ 고객사 드롭다운 구성
-      const clientSelect = document.getElementById("clientSelect");
-      if (currentUser.assignments && currentUser.assignments.length > 0) {
-        currentUser.assignments.forEach(assignment => {
-          const option = document.createElement("option");
-          option.value = assignment.client;
-          option.textContent = assignment.client;
-          clientSelect.appendChild(option);
+        // Enter 키로도 전송 가능하게 이벤트 리스너 추가
+        document.getElementById('chatInput').addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault(); // form 전송 방지
+                handleChatSubmit();
+            }
         });
-      }
 
-      // ✅ 오늘 날짜 기본값 설정
-      const today = new Date();
-      const yyyy = today.getFullYear();
-      const mm = String(today.getMonth() + 1).padStart(2, '0');
-      const dd = String(today.getDate()).padStart(2, '0');
-      document.getElementById("date").value = `${yyyy}-${mm}-${dd}`;
 
-      // ✅ 디버깅 정보 표시
-      showDebugInfo();
-    };
-
-    function showDebugInfo() {
-      const debugDiv = document.getElementById("debugInfo");
-      const apiUrl = getApiBaseUrl();
-      debugDiv.innerHTML = `
-        <strong>디버깅 정보:</strong><br>
-        API URL: ${apiUrl}/api/engineers<br>
-        현재 사용자: ${currentUser ? currentUser.name : 'None'}<br>
-        할당된 고객사: ${currentUser?.assignments?.map(a => a.client).join(', ') || '없음'}
-      `;
-      // 개발 환경에서만 보이도록
-      if (window.location.hostname.includes('localhost')) {
-        debugDiv.style.display = 'block';
-      }
-    }
-
-    function updateProjects() {
-      const selectedClient = document.getElementById("clientSelect").value;
-      const projectSelect = document.getElementById("projectSelect");
-      const equipmentSelect = document.getElementById("equipmentSelect");
-      projectSelect.innerHTML = '<option value="">프로젝트를 선택하세요</option>';
-      equipmentSelect.innerHTML = '<option value="">장비를 선택하세요</option>';
-      projectSelect.disabled = true;
-      equipmentSelect.disabled = true;
-
-      if (!selectedClient || !currentUser.assignments) return;
-
-      const clientData = currentUser.assignments.find(a => a.client === selectedClient);
-      if (clientData && clientData.projects && clientData.projects.length > 0) {
-        clientData.projects.forEach(project => {
-          const option = document.createElement("option");
-          option.value = project.projectName;
-          option.textContent = project.projectName;
-          projectSelect.appendChild(option);
+        // 페이지 로드 시 초기화
+        document.addEventListener('DOMContentLoaded', async function() {
+            await checkAuth(); // 비동기 인증 확인
+            if(currentUser) {
+                initializePage();
+                setupEventListeners();
+            }
         });
-        projectSelect.disabled = false;
-      } else {
-        console.warn("선택한 고객사에 프로젝트가 없습니다.");
-      }
-    }
 
-    function updateEquipments() {
-      const selectedClient = document.getElementById("clientSelect").value;
-      const selectedProject = document.getElementById("projectSelect").value;
-      const equipmentSelect = document.getElementById("equipmentSelect");
-      equipmentSelect.innerHTML = '<option value="">장비를 선택하세요</option>';
-      equipmentSelect.disabled = true;
+        // ... 나머지 스크립트는 변경 없이 그대로 유지 ...
+        // 이벤트 리스너 설정
+        function setupEventListeners() {
+            // 고객사 선택 이벤트
+            document.getElementById('clientSelect').addEventListener('change', updateProjects);
+            
+            // 프로젝트 선택 이벤트
+            document.getElementById('projectSelect').addEventListener('change', updateEquipments);
 
-      if (!selectedClient || !selectedProject || !currentUser.assignments) return;
-
-      const clientData = currentUser.assignments.find(a => a.client === selectedClient);
-      if (clientData) {
-        const projectData = clientData.projects.find(p => p.projectName === selectedProject);
-        if (projectData && projectData.equipments && projectData.equipments.length > 0) {
-          projectData.equipments.forEach(equipment => {
-            const option = document.createElement("option");
-            option.value = equipment;
-            option.textContent = equipment;
-            equipmentSelect.appendChild(option);
-          });
-          equipmentSelect.disabled = false;
-        } else {
-          console.warn("선택한 프로젝트에 장비가 없습니다.");
+            // 검색 이벤트 리스너 호출 추가
+            setupSearchEventListeners();
         }
-      }
-    }
 
-    function showToast(message) {
-      const toast = document.getElementById("toast");
-      toast.textContent = message;
-      toast.classList.add("show");
-      setTimeout(() => {
-        toast.classList.remove("show");
-      }, 1500);
-    }
+        // 인증 확인
+        async function checkAuth() {
+            const userData = localStorage.getItem('loggedEngineer');
+            if (!userData) {
+                alert('로그인이 필요합니다.');
+                window.location.href = 'index.html';
+                return;
+            }
+            
+            currentUser = JSON.parse(userData);
+            // 로그인 시 저장된 role을 사용하여 화면에 표시
+            const userRoleText = currentUser.role === 'leader' ? '팀장' : '팀원';
+            document.getElementById('currentUser').textContent = `엔지니어: ${currentUser.name} (${userRoleText})`;
+        }
 
-    async function submitRecord() {
-      // 전역 변수 currentUser를 사용
-      if (!currentUser) {
-          alert("로그인 정보를 찾을 수 없습니다. 다시 로그인해주세요.");
-          window.location.href = 'index.html';
-          return;
-      }
+        // 페이지 초기화
+        async function initializePage() {
+            const today = new Date();
+            // 오늘 날짜를 수행일자에 설정
+            const todayStr = today.toISOString().split('T')[0];
+            document.getElementById('workDate').value = todayStr;
+            document.getElementById('currentDate').textContent = formatFullDate(today);
 
-      const manager = currentUser.name;
-      const client = document.getElementById("clientSelect").value;
-      const project = document.getElementById("projectSelect").value;
-      const equipment = document.getElementById("equipmentSelect").value;
-      const date = document.getElementById("date").value;
-      const content = document.getElementById("content").value.trim();
+            await loadInitialData(); // 데이터 로딩
 
-      console.log("전송 데이터:", { manager, client, project, equipment, date, content });
+            goToToday(); // 달력 오늘로 이동
 
-      if (!client || !project || !equipment || !date || !content) {
-          alert("모든 항목을 입력해주세요.");
-          return;
-      }
+            // 역할에 따라 승인 패널 UI 처리
+            if (currentUser && currentUser.role === 'leader') {
+                document.getElementById('approvalPanel').style.display = 'block';
+                document.getElementById('waitPanel').style.display = 'none';
+                loadApprovalList(); // 팀장일 경우 승인 목록 로드
+            } else {
+                document.getElementById('waitPanel').style.display = 'block';
+                document.getElementById('approvalPanel').style.display = 'none'; // 팀원은 승인 패널 숨김
+                renderPendingWorks()
+            }
+            // 🔽 새로운 함수 추가
+            // 엔지니어의 모든 시간별 메모 로드
+            async function loadTimeMemos() {
+                try {
+                    const response = await fetch(`${API_BASE}/engineer-memo/${currentUser.id}`);
+                    if (!response.ok) throw new Error('메모를 불러올 수 없습니다.');
+                    timeMemos = await response.json();
+                } catch (error) {
+                    console.error('메모 로드 실패:', error);
+                }
+            }
+        }
 
-      const apiBaseUrl = getApiBaseUrl();
-      console.log("API 호출 URL:", `${apiBaseUrl}/api/engineer-record`);
+        // 초기 데이터 로드
+        async function loadInitialData() {
+            try {
+                
+                await loadEngineerData(); // 엔지니어 데이터 로드 (고객사/프로젝트/장비 목록용)
+                
+                await loadWorkRecords(); // 기존 업무 기록 로드
+                updateCalendar();
+                updateStats();
+            } catch (error) {
+                console.error('초기 데이터 로드 실패:', error);
+                showMessage('데이터 로드 중 오류가 발생했습니다.', 'error', 'formMessage');
+            }
+        }
 
-      try {
-          const response = await fetch(`${apiBaseUrl}/api/engineer-record`, {
-              method: "POST",
-              headers: { 
-                  "Content-Type": "application/json"
-              },
-              body: JSON.stringify({
-                  manager,
-                  client,
-                  project,
-                  equipment,
-                  date,
-                  content
-              })
-          });
+        // 엔지니어 데이터 및 담당 고객사/프로젝트 로드
+        async function loadEngineerData() {
+            try {
+                const response = await fetch(`${API_BASE}/engineers`);
+                if (!response.ok) throw new Error('엔지니어 정보를 불러올 수 없습니다.');
+                
+                const engineers = await response.json();
+                const engineerInfo = engineers.find(e => e.id === currentUser.id);
 
-          console.log("Response status:", response.status);
-          console.log("Response ok:", response.ok);
+                if (engineerInfo && engineerInfo.assignments) {
+                    engineerAssignments = engineerInfo.assignments;
+                    const clientSelect = document.getElementById('clientSelect');
+                    clientSelect.innerHTML = '<option value="">고객사를 선택하세요</option>';
+                    
+                    // Set을 사용하여 중복 고객사 제거
+                    const uniqueClients = [...new Set(engineerAssignments.map(a => a.client))];
 
-          if (!response.ok) {
-              const errorText = await response.text();
-              console.error("서버 응답 오류:", errorText);
-              throw new Error(`HTTP ${response.status}: ${errorText}`);
-          }
+                    uniqueClients.forEach(clientName => {
+                        const option = document.createElement('option');
+                        option.value = clientName;
+                        option.textContent = clientName;
+                        clientSelect.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('엔지니어 데이터 로드 실패:', error);
+                showMessage(error.message, 'error', 'formMessage');
+            }
+        }
 
-          const data = await response.json();
-          console.log("성공 응답:", data);
-          
-          showToast("기록이 저장되었습니다.");
-          document.getElementById("content").value = ""; // 내용 초기화
+        // 업무 기록 검색 함수
+        function searchWorkRecords(searchTerm) {
+            // '기타' 고객사를 제외하고 검색
+            const recordsToSearch = workRecords.filter(work => work.client !== '기타');
+            
+            return recordsToSearch.filter(work => {
+                const client = work.client?.toLowerCase() || '';
+                const project = work.project?.toLowerCase() || '';
+                const performer = work.performer?.toLowerCase() || '';
+                const content = work.content?.toLowerCase() || '';
+                const date = work.date || '';
 
-      } catch (error) {
-          console.error("API 호출 오류:", error);
-          
-          // 네트워크 오류인지 확인
-          if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
-              alert(`네트워크 연결 오류: 서버에 접근할 수 없습니다.\n서버 URL: ${apiBaseUrl}\n\nCORS 설정이나 서버 상태를 확인해주세요.`);
-          } else {
-              alert(`오류 발생: ${error.message}`);
-          }
-      }
-    }
-  </script>
+                return client.includes(searchTerm) ||
+                    project.includes(searchTerm) ||
+                    performer.includes(searchTerm) ||
+                    content.includes(searchTerm) ||
+                    date.includes(searchTerm);
+            });
+        }
 
+        // 페이지네이션과 함께 업무 기록을 렌더링하는 함수
+        function renderWorkRecordsWithPagination(records, page = 1) {
+            const workList = document.getElementById('workList');
+            const paginationContainer = document.getElementById('paginationContainer');
+            
+            if (records.length === 0) {
+                workList.innerHTML = isSearchMode ? 
+                    '<div class="no-data">검색된 업무 기록이 없습니다.</div>' : 
+                    '<div class="no-data">등록된 업무 기록이 없습니다.</div>';
+                paginationContainer.style.display = 'none';
+                return;
+            }
+
+            // 페이지네이션 계산
+            const totalPages = Math.ceil(records.length / recordsPerPage);
+            const startIndex = (page - 1) * recordsPerPage;
+            const endIndex = startIndex + recordsPerPage;
+            const recordsToShow = records.slice(startIndex, endIndex);
+
+            // 상태 매핑
+            const statusMap = { '대기': 'pending', '승인': 'approved', '반려': 'rejected' };
+
+            // 업무 기록 렌더링
+            workList.innerHTML = recordsToShow.map(work => `
+                <div class="work-item" onclick="editWork('${work.id}')">
+                    <div class="work-header">
+                        <div class="project-name">${work.project}</div>
+                        <div>
+                           <span class="work-date">${formatDate(work.date)}</span>
+                        </div>
+                    </div>
+                    <div class="work-meta">${work.client} · ${work.equipment}</div>
+                    <div class="work-content">${work.content}</div>
+                </div>
+            `).join('');
+
+            // 페이지네이션 표시
+            if (totalPages > 1) {
+                paginationContainer.style.display = 'flex';
+                updatePaginationControls(page, totalPages, records.length);
+            } else {
+                paginationContainer.style.display = 'none';
+            }
+        }
+
+        // 페이지네이션 컨트롤 업데이트
+        function updatePaginationControls(currentPage, totalPages, totalRecords) {
+            const paginationInfo = document.getElementById('paginationInfo');
+            const paginationNumbers = document.getElementById('paginationNumbers');
+            const prevPageBtn = document.getElementById('prevPageBtn');
+            const nextPageBtn = document.getElementById('nextPageBtn');
+
+            // 정보 표시
+            const startRecord = (currentPage - 1) * recordsPerPage + 1;
+            const endRecord = Math.min(currentPage * recordsPerPage, totalRecords);
+            paginationInfo.textContent = `${startRecord}-${endRecord} / 총 ${totalRecords}개`;
+
+            // 이전/다음 버튼 상태
+            prevPageBtn.disabled = currentPage === 1;
+            nextPageBtn.disabled = currentPage === totalPages;
+
+            // 페이지 번호 버튼들
+            paginationNumbers.innerHTML = '';
+            
+            // 표시할 페이지 범위 계산 (최대 5개 페이지 표시)
+            const maxVisiblePages = 5;
+            let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+            let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+            
+            // 끝에서 시작점 조정
+            if (endPage - startPage < maxVisiblePages - 1) {
+                startPage = Math.max(1, endPage - maxVisiblePages + 1);
+            }
+
+            for (let i = startPage; i <= endPage; i++) {
+                const pageBtn = document.createElement('button');
+                pageBtn.className = `pagination-btn ${i === currentPage ? 'current' : ''}`;
+                pageBtn.textContent = i;
+                pageBtn.onclick = () => goToPage(i);
+                paginationNumbers.appendChild(pageBtn);
+            }
+        }
+
+        // 특정 페이지로 이동
+        function goToPage(page) {
+            currentPage = page;
+            if (isSearchMode) {
+                renderWorkRecordsWithPagination(searchResults, page);
+            } else {
+                updateWorkList();
+            }
+        }
+
+        // 이전 페이지로 이동
+        function goToPreviousPage() {
+            if (currentPage > 1) {
+                goToPage(currentPage - 1);
+            }
+        }
+
+        // 다음 페이지로 이동
+        function goToNextPage() {
+            const records = isSearchMode ? searchResults : workRecords.filter(work => work.client !== '기타');
+            const totalPages = Math.ceil(records.length / recordsPerPage);
+            if (currentPage < totalPages) {
+                goToPage(currentPage + 1);
+            }
+        }
+
+        // 검색 UI 이벤트 리스너 설정 함수 (수정됨)
+        function setupSearchEventListeners() {
+            const searchIcon = document.getElementById('searchIcon');
+            const searchInputInline = document.getElementById('searchInputInline');
+
+            searchIcon.addEventListener('click', function(event) {
+                event.stopPropagation();
+                searchInputInline.classList.toggle('active');
+                if (searchInputInline.classList.contains('active')) {
+                    searchInputInline.focus();
+                } else {
+                    searchInputInline.value = '';
+                    // 검색 모드 해제
+                    isSearchMode = false;
+                    currentPage = 1;
+                    updateWorkList();
+                }
+            });
+
+            searchInputInline.addEventListener('input', function(event) {
+                const searchTerm = event.target.value.toLowerCase().trim();
+                if (searchTerm) {
+                    isSearchMode = true;
+                    searchResults = searchWorkRecords(searchTerm);
+                    currentPage = 1; // 검색 시 첫 페이지로
+                    renderWorkRecordsWithPagination(searchResults, 1);
+                } else {
+                    isSearchMode = false;
+                    currentPage = 1;
+                    updateWorkList();
+                }
+            });
+            
+            // ESC 키를 누르면 검색창이 닫히도록 설정
+            searchInputInline.addEventListener('keydown', function(event) {
+                if (event.key === 'Escape') {
+                    searchInputInline.value = '';
+                    searchInputInline.classList.remove('active');
+                    isSearchMode = false;
+                    currentPage = 1;
+                    updateWorkList();
+                }
+            });
+        }
+
+        // 고객사 선택 시 프로젝트 드롭다운 업데이트
+        function updateProjects() {
+            const selectedClient = document.getElementById("clientSelect").value;
+            const projectSelect = document.getElementById("projectSelect");
+            const equipmentSelect = document.getElementById("equipmentSelect");
+            
+            projectSelect.innerHTML = '<option value="">프로젝트를 선택하세요</option>';
+            equipmentSelect.innerHTML = '<option value="">장비를 선택하세요</option>';
+            projectSelect.disabled = true;
+            equipmentSelect.disabled = true;
+
+            if (!selectedClient) return;
+
+            const projectsForClient = engineerAssignments
+                .filter(a => a.client === selectedClient)
+                .flatMap(a => a.projects);
+            
+            const uniqueProjects = [...new Map(projectsForClient.map(p => [p.projectName, p])).values()];
+
+            if (uniqueProjects.length > 0) {
+                uniqueProjects.forEach(project => {
+                    const option = document.createElement("option");
+                    option.value = project.projectName;
+                    option.textContent = project.projectName;
+                    projectSelect.appendChild(option);
+                });
+                projectSelect.disabled = false;
+            }
+        }
+
+        // 프로젝트 선택 시 장비 드롭다운 업데이트
+        function updateEquipments() {
+            const selectedClient = document.getElementById("clientSelect").value;
+            const selectedProject = document.getElementById("projectSelect").value;
+            const equipmentSelect = document.getElementById("equipmentSelect");
+
+            equipmentSelect.innerHTML = '<option value="">장비를 선택하세요</option>';
+            equipmentSelect.disabled = true;
+
+            const projectsForClient = engineerAssignments
+                .filter(a => a.client === selectedClient)
+                .flatMap(a => a.projects);
+
+            const projectData = projectsForClient.find(p => p.projectName === selectedProject);
+
+            if (projectData && projectData.equipments) {
+                const uniqueEquipments = [...new Set(projectData.equipments)];
+                uniqueEquipments.forEach(equipment => {
+                    const option = document.createElement("option");
+                    option.value = equipment;
+                    option.textContent = equipment;
+                    equipmentSelect.appendChild(option);
+                });
+                equipmentSelect.disabled = false;
+            }
+        }
+
+        // 내 업무 기록 로드
+        async function loadWorkRecords() {
+            try {
+                const response = await fetch(`${API_BASE}/engineer-records/${currentUser.id}?_=${new Date().getTime()}`);
+                if (!response.ok) throw new Error('업무 기록을 불러올 수 없습니다.');
+                
+                workRecords = await response.json();
+                updateWorkList(); // 목록 업데이트 함수 호출
+            } catch (error) {
+                console.error('업무 기록 로드 실패:', error);
+                document.getElementById('workList').innerHTML = `<div class="error">${error.message}</div>`;
+            }
+        }
+
+        // 내 업무 목록 UI 업데이트 (페이지네이션 적용)
+        function updateWorkList() {
+            const filteredRecords = workRecords.filter(work => 
+                work.status === '승인' && work.client && work.client.trim() !== '기타');
+            renderWorkRecordsWithPagination(filteredRecords, currentPage);
+        }
+
+        // --- 신규 기능: 팀원 업무 승인 관련 함수 ---
+
+        // 팀장용: 승인 대기 목록 로드
+        async function loadApprovalList() {
+            const approvalList = document.getElementById('approvalList');
+            approvalList.innerHTML = '<div class="loading">승인 대기 목록을 불러오는 중...</div>';
+
+            try {
+                const response = await fetch(`${API_BASE}/team-records/${currentUser.id}`);
+                if (!response.ok) throw new Error('승인 목록을 불러올 수 없습니다.');
+
+                const recordsToApprove = await response.json();
+
+                if (recordsToApprove.length === 0) {
+                    approvalList.innerHTML = '<div class="no-data">승인 대기 중인 기록이 없습니다.</div>';
+                    return;
+                }
+                
+                approvalList.innerHTML = recordsToApprove.map(record => `
+                    <div class="work-item approval-item" id="approval-${record.id}">
+                        <div class="work-header">
+                            <div class="project-name">${record.project}</div>
+                            <div class="work-date">${formatDate(record.date)}</div>
+                        </div>
+                        <div class="work-meta">
+                            <strong>담당자:</strong> ${record.performer} <br>
+                            <strong>고객사:</strong> ${record.client} <br>
+                            <strong>장비:</strong> ${record.equipment}
+                        </div>
+                        <div class="work-content">${record.content}</div>
+                        <div class="approval-actions">
+                            <button class="btn btn-reject" onclick="handleApproval('${record.id}', '반려')">반려</button>
+                            <button class="btn" onclick="handleApproval('${record.id}', '승인')">승인</button>
+                        </div>
+                    </div>
+                `).join('');
+
+            } catch (error) {
+                console.error("승인 목록 로드 오류:", error);
+                approvalList.innerHTML = `<div class="error">${error.message}</div>`;
+            }
+        }
+        
+        // 승인/반려 처리 함수
+        async function handleApproval(recordId, newStatus) {
+            const confirmAction = confirm(`해당 기록을 '${newStatus}' 처리하시겠습니까?`);
+            if (!confirmAction) return;
+
+            try {
+                const response = await fetch(`${API_BASE}/engineer-record/${recordId}/approve`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        status: newStatus,
+                        reviewer: currentUser.name
+                    })
+                });
+
+                if (response.ok) {
+                    alert(`업무 기록이 '${newStatus}' 처리되었습니다.`);
+                    const itemToRemove = document.getElementById(`approval-${recordId}`);
+                    if (itemToRemove) itemToRemove.remove();
+                    
+                    const approvalList = document.getElementById('approvalList');
+                    if (approvalList.childElementCount === 0) {
+                         approvalList.innerHTML = '<div class="no-data">승인 대기 중인 기록이 없습니다.</div>';
+                    }
+                    loadWorkRecords(); // 내 기록 목록도 새로고침
+                } else {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || '처리 중 오류 발생');
+                }
+            } catch (error) {
+                alert(`오류: ${error.message}`);
+            }
+        }
+
+        function renderPendingWorks() {
+            const waitList = document.getElementById('waitList');
+            const pendingRecords = workRecords.filter(w => w.status === '대기');
+
+            if (pendingRecords.length === 0) {
+                waitList.innerHTML = '<div class="no-data">기록이 없습니다</div>';
+                return;
+            }
+
+            waitList.innerHTML = pendingRecords.map(work => `
+                <div class="work-item">
+                    <div class="work-header">
+                        <div class="project-name">${work.project}</div>
+                        <div>
+                            <span class="work-date">${formatDate(work.date)}</span>
+                        </div>
+                    </div>
+                    <div class="work-meta">${work.client} · ${work.equipment}</div>
+                    <div class="work-content">${work.content}</div>
+                </div>
+            `).join('');
+        }
+
+        // 업무 기록 추가
+        async function addWork() {
+            const client = document.getElementById('clientSelect').value;
+            const project = document.getElementById('projectSelect').value;
+            const equipment = document.getElementById('equipmentSelect').value;
+            const date = document.getElementById('workDate').value;
+            const performer = currentUser.name;
+            const content = document.getElementById('workContent').value;
+            const content_simple = document.getElementById('workContent_simple').value;
+
+            if (!client || !project || !equipment || !date || !content || !content_simple) {
+                showMessage('모든 필수 항목을 입력해주세요.', 'error', 'formMessage');
+                return;
+            }
+
+            const saveBtn = document.getElementById('saveBtn');
+            saveBtn.disabled = true;
+            saveBtn.textContent = '저장 중...';
+
+            try {
+                const response = await fetch(`${API_BASE}/engineer-record`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        manager: performer, client, project, equipment, date, content, content_simple
+                    })
+                });
+                
+                if (response.ok) {
+                    const newRecord = await response.json();
+                    showMessage('업무 기록이 저장되었습니다. 팀장 승인 후 반영됩니다.', 'success', 'formMessage');
+                    clearForm();
+                    workRecords.unshift(newRecord);
+                    updateWorkList();
+                    renderPendingWorks();
+                    updateCalendar();
+                    updateStats();
+                } else {
+                    const errorData = await response.json();
+                    showMessage(`저장 실패: ${errorData.message}`, 'error', 'formMessage');
+                }
+            } catch (error) {
+                showMessage('서버 연결에 실패했습니다.', 'error', 'formMessage');
+            } finally {
+                saveBtn.disabled = false;
+                saveBtn.textContent = '업무 기록 저장';
+            }
+        }
+        
+        // 수정 모달 열기
+        function editWork(recordId) {
+            const record = workRecords.find(w => w.id == recordId);
+            if (!record) {
+                alert('수정할 기록을 찾을 수 없습니다.');
+                return;
+            }
+            
+            document.getElementById('editRecordId').value = record.id;
+            document.getElementById('editWorkDate').value = record.date;
+            document.getElementById('editWorkContent').value = record.content;
+            
+            document.getElementById('editModal').classList.add('visible');
+        }
+
+        // 수정 모달 닫기
+        function closeEditModal() {
+            document.getElementById('editModal').classList.remove('visible');
+            // 메시지 초기화
+            const messageDiv = document.getElementById('editFormMessage');
+            messageDiv.textContent = '';
+            messageDiv.className = '';
+        }
+        
+        // 업무 기록 업데이트
+        async function updateWork() {
+            const recordId = document.getElementById('editRecordId').value;
+            const date = document.getElementById('editWorkDate').value;
+            const content = document.getElementById('editWorkContent').value;
+
+            if (!date || !content) {
+                showMessage('날짜와 업무 내용을 모두 입력해주세요.', 'error', 'editFormMessage');
+                return;
+            }
+            
+            const updateBtn = document.getElementById('updateBtn');
+            updateBtn.disabled = true;
+            updateBtn.textContent = '수정 중...';
+
+            try {
+                // 서버에 업데이트 요청 (PATCH 메소드 사용)
+                const response = await fetch(`${API_BASE}/engineer-record/${recordId}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        date: date,
+                        content: content
+                    })
+                });
+
+                if (response.ok) {
+                    showMessage('업무 기록이 수정되었습니다.', 'success', 'editFormMessage');
+                    
+                    // 로컬 데이터 업데이트
+                    const recordIndex = workRecords.findIndex(w => w.id == recordId);
+                    if (recordIndex > -1) {
+                        workRecords[recordIndex].date = date;
+                        workRecords[recordIndex].content = content;
+                    }
+
+                    // 1.5초 후에 모달 닫고 UI 갱신
+                    setTimeout(() => {
+                        closeEditModal();
+                        updateWorkList();
+                        updateCalendar();
+                        updateStats();
+                    }, 1500);
+
+                } else {
+                    const errorData = await response.json();
+                    showMessage(`수정 실패: ${errorData.message}`, 'error', 'editFormMessage');
+                }
+            } catch (error) {
+                console.error('업무 수정 오류:', error);
+                showMessage('서버 연결에 실패했습니다.', 'error', 'editFormMessage');
+            } finally {
+                updateBtn.disabled = false;
+                updateBtn.textContent = '수정 완료';
+            }
+        }
+
+        // 폼 초기화
+        function clearForm() {
+            document.getElementById('projectSelect').value = '';
+            document.getElementById('clientSelect').value = '';
+            document.getElementById('equipmentSelect').value = '';
+            document.getElementById('workContent').value = '';
+            document.getElementById('workContent_simple').value = '';
+            // 날짜와 수행자는 유지
+            document.getElementById('projectSelect').disabled = true;
+            document.getElementById('equipmentSelect').disabled = true;
+        }
+
+        // 메시지 표시 (수정됨)
+        function showMessage(message, type, elementId) {
+            const messageDiv = document.getElementById(elementId);
+            if (messageDiv) {
+                messageDiv.className = type;
+                messageDiv.textContent = message;
+                
+                setTimeout(() => {
+                    messageDiv.textContent = '';
+                    messageDiv.className = '';
+                }, 5000);
+            } else {
+                // 폴백: alert 사용
+                alert(message);
+            }
+        }
+
+        // 날짜 형식 변환
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return `${date.getMonth() + 1}/${date.getDate()}`;
+        }
+
+        function formatFullDate(date) {
+            return `${date.getFullYear()}년 ${date.getMonth() + 1}월 ${date.getDate()}일`;
+        }
+
+        // 전역 변수
+        let selectedDateString = ''; // Date 객체 대신 문자열 저장
+
+        function selectDate(dateString) {
+            // 1. 수행일자 입력란에 날짜 설정
+            document.getElementById('workDate').value = dateString;
+
+            // 2. 선택한 날짜 문자열 저장
+            selectedDateString = dateString;
+
+            // 3. 달력 다시 그림 (선택 강조 포함)
+            updateCalendar();
+
+            // 4. 해당 날짜의 메모를 찾아 모달 열기
+            const memosForDate = timeMemos.filter(memo => memo.date === dateString);
+            openTimeMemoModal(dateString, memosForDate);
+        }
+
+        // 2025년 대한민국 공휴일 정보 (월별로 날짜만 포함)
+        function getKoreanHolidays(year, month) {
+            if (year !== 2025) return []; // 2025년만 지원
+
+            const holidays = {
+                1: [1, 27, 28, 29, 30], // 신정, 설날 연휴
+                3: [1, 3],             // 삼일절
+                5: [1, 5, 6],             // 어린이날, 부처님 오신 날
+                6: [3, 6],             // 현충일
+                8: [15],            // 광복절
+                10: [3, 6, 7, 8, 9],   // 개천절, 추석 연휴, 한글날
+                12: [25]            // 크리스마스
+            };
+            return holidays[month] || [];
+        }
+
+
+        function updateCalendar() {
+            const calendar = document.getElementById('calendar');
+            const calendarTitle = document.getElementById('calendarTitle');
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            const today = new Date();
+            
+            // 2단계에서 추가한 함수를 호출하여 현재 월의 공휴일 정보 가져오기
+            const holidays = getKoreanHolidays(year, month + 1);
+
+            calendarTitle.textContent = `${year}년 ${month + 1}월`;
+
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            const startDate = new Date(firstDay);
+            startDate.setDate(startDate.getDate() - firstDay.getDay());
+
+            let calendarHTML = '';
+            const days = ['일', '월', '화', '수', '목', '금', '토'];
+            days.forEach(day => {
+                calendarHTML += `<div class="calendar-day-header">${day}</div>`;
+            });
+
+            for (let i = 0; i < 42; i++) {
+                const date = new Date(startDate);
+                date.setDate(startDate.getDate() + i);
+
+                const yyyy = date.getFullYear();
+                const mm = String(date.getMonth() + 1).padStart(2, '0');
+                const dd = String(date.getDate()).padStart(2, '0');
+                const dateString = `${yyyy}-${mm}-${dd}`;
+
+                const isToday = date.toDateString() === today.toDateString();
+                const isOtherMonth = date.getMonth() !== month;
+                const isSelected = selectedDateString === dateString;
+                
+                // --- 로직 수정/추가 부분 ---
+                const dayOfWeek = date.getDay(); // 0:일요일, 6:토요일
+                const day = date.getDate();
+                let dayClass = '';
+                // 일요일이거나 공휴일이면 'holiday' 클래스 적용
+                if (dayOfWeek === 0 || holidays.includes(day)) {
+                    dayClass = 'holiday';
+                // 토요일이면 'saturday' 클래스 적용
+                } else if (dayOfWeek === 6) {
+                    dayClass = 'saturday';
+                }
+                // --- 여기까지 ---
+
+                let classes = 'calendar-day';
+                if (isOtherMonth) classes += ' other-month';
+                if (isToday) classes += ' today';
+                if (isSelected) classes += ' selected';
+                const dayWorks = workRecords.filter(work => 
+                    work.date === dateString && 
+                    work.status === '승인' && // '승인' 상태인 기록만 카운트
+                    work.client !== '기타'
+                );
+                
+                // --- 🔽 메모 관련 로직 추가 ---
+        const dayMemos = timeMemos.filter(memo => memo.date === dateString);
+
+        let dayContent = `<div class="day-number ${dayClass}">${day}</div>`;
+        if (dayWorks.length > 0) {
+            dayContent += `<div class="work-count">${dayWorks.length}</div>`;
+            dayContent += `<div class="work-preview">${dayWorks[0].project}</div>`;
+        }
+        // 메모가 있으면 아이콘 표시
+        if (dayMemos.length > 0) {
+            dayContent += `<div class="memo-indicator">📝 ${dayMemos.length}건</div>`;
+        }
+        // --- 🔼 여기까지 ---
+
+                calendarHTML += `<div class="${classes}" onclick="selectDate('${dateString}')">${dayContent}</div>`;
+            }
+
+            calendar.innerHTML = calendarHTML;
+        }
+
+        // 달력 네비게이션
+        function previousMonth() {
+            currentDate.setMonth(currentDate.getMonth() - 1);
+            updateCalendar();
+        }
+
+        function nextMonth() {
+            currentDate.setMonth(currentDate.getMonth() + 1);
+            updateCalendar();
+        }
+        function goToToday() {
+            const today = new Date();
+            const yyyy = today.getFullYear();
+            const mm = String(today.getMonth() + 1).padStart(2, '0');
+            const dd = String(today.getDate()).padStart(2, '0');
+            const todayStr = `${yyyy}-${mm}-${dd}`;
+
+            currentDate = new Date(today); // 현재 달력을 오늘로
+            selectedDateString = todayStr;
+            document.getElementById('workDate').value = todayStr;
+
+            updateCalendar();
+        }
+
+        // updateStats 함수 전체 수정
+        function updateStats() {
+            // '기타' 고객사 제외한 업무 기록만 필터링
+            const filteredRecords = workRecords.filter(work => work.client !== '기타');
+            
+            const now = new Date();
+            const thisMonth = filteredRecords.filter(work => {
+                const workDate = new Date(work.date);
+                return workDate.getMonth() === now.getMonth() && workDate.getFullYear() === now.getFullYear();
+            });
+            const thisWeekStart = new Date(now.setDate(now.getDate() - now.getDay()));
+            const thisWeek = filteredRecords.filter(work => new Date(work.date) >= thisWeekStart);
+            
+            document.getElementById('totalWorks').textContent = filteredRecords.length;
+            document.getElementById('monthlyWorks').textContent = thisMonth.length;
+            document.getElementById('weeklyWorks').textContent = thisWeek.length;
+        }
+
+        function populateTimeDropdown() {
+            const timeSelect = document.getElementById('memoTime');
+            timeSelect.innerHTML = '';
+            for (let hour = 0; hour < 24; hour++) {
+                for (let min = 0; min < 60; min += 30) {
+                    const time = `${String(hour).padStart(2, '0')}:${String(min).padStart(2, '0')}`;
+                    const option = document.createElement('option');
+                    option.value = time;
+                    option.textContent = time;
+                    timeSelect.appendChild(option);
+                }
+            }
+        }
+
+        // openTimeMemoModal 함수 전체 교체
+        function openTimeMemoModal(dateString, memos = []) {
+            populateTimeDropdown();
+            selectedDateString = dateString;
+            document.getElementById('memoText').value = '';
+            
+            // 모달 제목에 날짜 표시
+            const modalTitle = document.getElementById('memoModalTitle');
+            modalTitle.textContent = `${dateString} 메모`;
+
+            const existingMemosContainer = document.getElementById('existingMemosContainer');
+            const memoList = document.getElementById('memoList');
+            memoList.innerHTML = ''; // 목록 초기화
+
+            if (memos.length > 0) {
+                // 시간순으로 정렬
+                memos.sort((a, b) => a.time.localeCompare(b.time));
+
+                memos.forEach(memo => {
+                    const listItem = document.createElement('li');
+                    listItem.innerHTML = `<strong>${memo.time}</strong> <span>${memo.text}</span>`;
+                    memoList.appendChild(listItem);
+                });
+                existingMemosContainer.style.display = 'block';
+            } else {
+                existingMemosContainer.style.display = 'none';
+            }
+
+            // 모달 표시
+            document.getElementById('timeMemoModal').classList.add('visible');
+        }
+
+        function closeTimeMemoModal() {
+            document.getElementById('timeMemoModal').classList.remove('visible');
+        }
+
+        // saveTimeMemo 함수 전체 교체
+        async function saveTimeMemo() {
+            const time = document.getElementById('memoTime').value;
+            const text = document.getElementById('memoText').value.trim();
+
+            if (!selectedDateString || !time || !text) {
+                alert('시간과 내용을 모두 입력해주세요.');
+                return;
+            }
+
+            const payload = {
+                engineerId: currentUser.id,
+                date: selectedDateString,
+                time,
+                text
+            };
+
+            try {
+                const res = await fetch(`${API_BASE}/engineer-memo`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (res.ok) {
+                    const newMemoData = await res.json();
+                    // 전역 메모 배열에 새 메모 추가
+                    timeMemos.push(newMemoData.memo);
+                    
+                    alert('메모가 저장되었습니다.');
+                    closeTimeMemoModal();
+                    // 달력을 새로고침하여 메모 아이콘 즉시 반영
+                    updateCalendar();
+                } else {
+                    alert('저장에 실패했습니다.');
+                }
+            } catch (err) {
+                console.error('저장 오류:', err);
+                alert('서버 오류가 발생했습니다.');
+            }
+        }
+        
+    </script>
 </body>
 </html>

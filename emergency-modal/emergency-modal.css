@@ -1,0 +1,19 @@
+/* 비상신청 모달 스타일 (정기신청과 공통 스타일은 regular-modal.css에 이미 정의됨) */
+#emergencyCalendar {
+    background: white;
+    border-radius: var(--card-radius);
+    padding: 16px;
+    border: none;
+    box-shadow: var(--card-shadow);
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 5px;
+}
+
+#selectedEmergencyDate {
+    margin-top: 15px;
+    font-weight: 700;
+    text-align: center;
+    color: var(--primary-blue);
+    font-size: 1.1rem;
+}

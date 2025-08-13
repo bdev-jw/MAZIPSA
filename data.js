@@ -71,105 +71,6 @@ const clients = {
                     manager: '강영구'
                 }
             ]
-        },
-            equipment2: {
-                name: "NETBACKUP",
-                records: [
-                {
-                    date: '2024-12-15',
-                    cycle: '2개월',
-                    content: '부품 교체',
-                    manager: '박민수'
-                }
-                ]
-            },
-                equipment3: {
-                    name: "CIDER",
-                    records: [
-                    {
-                        date: '2024-11-30',
-                        cycle: '3개월',
-                        content: '소프트웨어 업데이트',
-                        manager: '김지혜'
-                    }
-                ]
-            },
-                equipment4: {
-                    name: "DELL",
-                    records: [
-                    {
-                        date: '2024-10-10',
-                        cycle: '매주',
-                        content: '상태 점검',
-                        manager: '이상우'
-                    }
-                ]
-            },
-            equipment5: {
-                name: "LAMPAD",
-                records: [
-                {
-                    date: '2024-12-15',
-                    cycle: '2개월',
-                    content: '부품 교체',
-                    manager: '박민수'
-                }
-            ]
-        },
-            equipment6: {
-                name: "RIMINI",
-                records: [
-                {
-                    date: '2024-11-30',
-                    cycle: '3개월',
-                    content: '소프트웨어 업데이트',
-                    manager: '김지혜'
-                }
-            ]
-        },
-            equipment7: {
-                name: "REDHAT",
-                records: [
-                {
-                    date: '2024-10-10',
-                    cycle: '매주',
-                    content: '상태 점검',
-                    manager: '이상우'
-                }
-            ]
-        },
-            equipment8: {
-                name: "VERITAS",
-                records: [
-                {
-                    date: '2024-10-10',
-                    cycle: '매주',
-                    content: '상태 점검',
-                    manager: '이상우'
-                }
-            ]
-        },
-            equipment9: {
-                name: "QSTAR",
-                records: [
-                {
-                    date: '2024-10-10',
-                    cycle: '매주',
-                    content: '상태 점검',
-                    manager: '이상우'
-                }
-            ]
-        },
-            equipment10: {
-                name: "STRATUS",
-                records: [
-                {
-                    date: '2024-10-10',
-                    cycle: '매주',
-                    content: '상태 점검',
-                    manager: '이상우'
-                }
-            ]
         }
             }
         },
@@ -233,119 +134,16 @@ const clients = {
                         manager: '김수호'
                     }
                 ]
-            },
-                equipment2: {
-                    name: "VRTS-INFOSCALE",
-                    records: [
-                    {
-                        date: '2025-03-19',
-                        cycle: '발생시',
-                        content: '점검',
-                        manager: '심상기'
-                    },
-                    {
-                        date: '2025-02-28',
-                        cycle: '발생시',
-                        content: '장애 해결',
-                        manager: '심상기'
-                    },
-                    {
-                        date: '2025-02-12',
-                        cycle: '발생시',
-                        content: '정기 방문 점검',
-                        manager: '심상기'
-                    },
-                    {
-                        date: '2025-02-01',
-                        cycle: '발생시',
-                        content: '장애 관련 유선 대응',
-                        manager: '심상기'
-                    },
-                    {
-                        date: '2025-01-20',
-                        cycle: '발생시',
-                        content: '점검',
-                        manager: '심상기'
-                    }
-                ]
-            },
-            equipment3: {
-                name: "NTNX-HCI"
-            },
-            equipment4: {
-                name: "NTNX-SW"
-            },
-            equipment5: {
-                name: "STRATUS"
-            },
-            equipment6: {
-                name: "SPECTRA-LOGIC"
-            },
-            equipment7: {
-                name: "DELL-EMC"
-            },
-            equipment8: {
-                name: "ETC"
-            }
+            }            
             }
         }
     }
     
 
 const engineers = [
-    {
-      id: "dhkim@mesa.kr",
-      password:'123',
-      name: "김두현",
-      gender: "남",
-      position: "차장",
-      experience: "4년차",
-      photo: "/public/man.png",
-      assignments: [
-        {
-          client: "(주)에스비에스(SBS)",
-          projects: [
-            {
-              projectName: "방송 IT 통합 유지보수",
-              equipments: ["서버 A", "서버 B", "네트워크 스위치","NUTANIX"]
-            },
-            {
-              projectName: "보도국장비지원",
-              equipments: ["카메라1호기", "송출장비"]
-            }
-          ]
-        },
-        {
-          client: "KBS",
-          projects: [
-            {
-              projectName: "본관네트워크",
-              equipments: ["코어스위치", "AP"]
-            }
-          ]
-        }
-      ]
-    },
+    
   
-    {
-      id: "engineer_hjy",
-      name: "홍지영",
-      gender: "여",
-      position: "과장",
-      experience: "6년차",
-      photo: "/public/profile_hjy.jpg",
-      assignments: [
-        {
-          client: "MBC",
-          projects: [
-            {
-              projectName: "송출센터지원",
-              equipments: ["송출서버1", "송출서버2"]
-            }
-          ]
-        }
-      ]
-    }
+    
   
     // 추가 엔지니어를 이 패턴으로 계속 추가하면 됨
   ];

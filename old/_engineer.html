@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>유지보수 기록 작성</title>
+  <script src="/data.js"></script> <!-- ✅ data.js 먼저 로드 -->
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #1a1a1f;
+      color: #fff;
+    }
+    
+    .container {
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    
+    .app-title {
+      color: #00e6c3;
+      margin-bottom: 20px;
+      font-size: 24px;
+      font-weight: bold;
+    }
+    
+    .profile {
+      display: flex;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    
+    .profile img {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background-color: #9d92ca;
+      margin-right: 15px;
+    }
+    
+    .profile-info {
+      font-size: 14px;
+    }
+    
+    .record-form {
+      background: #2a2a30;
+      padding: 20px;
+      border-radius: 10px;
+    }
+    
+    .form-group {
+      margin-bottom: 15px;
+    }
+    
+    label {
+      font-weight: bold;
+      display: block;
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+    
+    input, select, textarea {
+      width: 100%;
+      padding: 12px;
+      font-size: 14px;
+      border: none;
+      border-radius: 6px;
+      background-color: #3a3a42;
+      color: #fff;
+      box-sizing: border-box;
+    }
+    
+    input::placeholder, 
+    select::placeholder, 
+    textarea::placeholder {
+      color: #888;
+    }
+    
+    select {
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23ffffff' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 30px;
+    }
+    
+    textarea {
+      resize: vertical;
+      height: 100px;
+    }
+    
+    button {
+      background-color: #00e6c3;
+      color: #1a1a1f;
+      padding: 14px 20px;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+      width: 100%;
+      font-weight: bold;
+    }
+    
+    button:hover {
+      background-color: #00d4b4;
+    }
+    
+    input[type="date"] {
+      position: relative;
+    }
+    
+    input[type="date"]::-webkit-calendar-picker-indicator {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24'%3E%3Cpath fill='%23ffffff' d='M20 3h-1V1h-2v2H7V1H5v2H4c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 18H4V8h16v13z'/%3E%3C/svg%3E");
+      opacity: 0.8;
+    }
+
+    .debug-info {
+      background: #444;
+      padding: 10px;
+      border-radius: 5px;
+      margin: 10px 0;
+      font-size: 12px;
+      display: none; /* 디버깅 시에만 보이도록 */
+    }
+
+    .toast {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background-color: #90ecde;
+      color: #1a1a1f;
+      padding: 16px 24px;
+      border-radius: 10px;
+      font-weight: bold;
+      box-shadow: 0 0 12px rgba(0, 230, 195, 0.4);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.5s ease, transform 0.5s ease;
+      z-index: 9999;
+      font-size: 12px;
+    }
+
+    .toast.show {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- 앱 타이틀 -->
+    <div class="app-title">MA집사</div>
+  
+    <!-- 프로필 정보 -->
+    <div class="profile">
+      <img id="profileImage" alt="프로필 사진" />
+      <div class="profile-info">
+        <div><strong id="profileName"></strong></div>
+        <div id="profileDetail"></div>
+      </div>
+    </div>
+
+    <!-- 디버깅 정보 (개발용) -->
+    <div id="debugInfo" class="debug-info"></div>
+  
+    <!-- 기록 입력 폼 -->
+    <div class="record-form">
+      <div class="form-group">
+        <label for="clientSelect">고객사 선택</label>
+        <select id="clientSelect" onchange="updateProjects()">
+          <option value="">고객사를 선택하세요</option>
+        </select>
+      </div>
+  
+      <div class="form-group">
+        <label for="projectSelect">프로젝트 선택</label>
+        <select id="projectSelect" onchange="updateEquipments()" disabled>
+          <option value="">프로젝트를 선택하세요</option>
+        </select>
+      </div>
+  
+      <div class="form-group">
+        <label for="equipmentSelect">장비 선택</label>
+        <select id="equipmentSelect" disabled>
+          <option value="">장비를 선택하세요</option>
+        </select>
+      </div>
+  
+      <div class="form-group">
+        <label for="date">날짜</label>
+        <input type="date" id="date" />
+      </div>
+  
+      <div class="form-group">
+        <label for="content">유지보수 내역</label>
+        <textarea id="content" placeholder="유지보수 작업 내용을 입력하세요"></textarea>
+      </div>
+  
+      <button onclick="submitRecord()">등록하기</button>
+    </div>
+
+    <!-- 알림 메시지 박스 -->
+     <div id="toast" class="toast"></div>
+  </div>
+
+  <script>
+    let currentUser = null;
+    let engineersData = []; // 엔지니어 데이터 배열
+
+    // API 기본 URL 설정
+    const getApiBaseUrl = () => {
+      // Netlify에서 환경변수로 서버 URL 설정하거나, 직접 입력
+      if (window.location.hostname.includes('netlify.app')) {
+        return 'https://ma-helper.onrender.com'; // 여기에 실제 Render URL 입력
+      }
+      return 'http://localhost:3000'; // 로컬 개발용
+    };
+
+    // 페이지 초기화
+    window.onload = async function() {
+      // localStorage에서 로그인한 엔지니어 정보 가져오기
+      const loggedEngineer = JSON.parse(localStorage.getItem('loggedEngineer'));
+      
+      if (!loggedEngineer) {
+        alert("로그인된 정보가 없습니다. 로그인 페이지로 이동합니다.");
+        window.location.href = 'index.html';
+        return;
+      }
+
+      const apiUrl = `${getApiBaseUrl()}/api/engineers`
+      
+      try {
+      const res = await fetch(apiUrl);
+      if (!res.ok) throw new Error("API 요청 실패");
+      engineersData = await res.json();
+      console.log("✅ API로부터 엔지니어 데이터 수신:", engineersData);
+    } catch (err) {
+      console.warn("❌ API 요청 실패. data.js에서 로컬 데이터 사용");
+      engineersData = typeof engineers !== 'undefined' ? engineers : [];
+    }
+
+    currentUser = engineersData.find(e => e.id === loggedEngineer.id);
+
+    if (!currentUser) {
+      alert("엔지니어 정보를 찾을 수 없습니다.");
+      localStorage.removeItem('loggedEngineer');
+      location.href = 'index.html';
+      return;
+    }
+
+      // 프로필 정보 표시
+      document.getElementById("profileName").textContent = currentUser.name || '이름 없음';
+      document.getElementById("profileDetail").textContent = 
+        `${currentUser.gender || ''} / ${currentUser.position || ''} / ${currentUser.experience || ''}`;
+      
+      // 프로필 사진 설정 (사진이 있는 경우만)
+      if (currentUser.photo) {
+        document.getElementById("profileImage").src = currentUser.photo;
+      }
+
+      // ✅ 고객사 드롭다운 구성
+      const clientSelect = document.getElementById("clientSelect");
+      if (currentUser.assignments && currentUser.assignments.length > 0) {
+        currentUser.assignments.forEach(assignment => {
+          const option = document.createElement("option");
+          option.value = assignment.client;
+          option.textContent = assignment.client;
+          clientSelect.appendChild(option);
+        });
+      }
+
+      // ✅ 오늘 날짜 기본값 설정
+      const today = new Date();
+      const yyyy = today.getFullYear();
+      const mm = String(today.getMonth() + 1).padStart(2, '0');
+      const dd = String(today.getDate()).padStart(2, '0');
+      document.getElementById("date").value = `${yyyy}-${mm}-${dd}`;
+
+      // ✅ 디버깅 정보 표시
+      showDebugInfo();
+    };
+
+    function showDebugInfo() {
+      const debugDiv = document.getElementById("debugInfo");
+      const apiUrl = getApiBaseUrl();
+      debugDiv.innerHTML = `
+        <strong>디버깅 정보:</strong><br>
+        API URL: ${apiUrl}/api/engineers<br>
+        현재 사용자: ${currentUser ? currentUser.name : 'None'}<br>
+        할당된 고객사: ${currentUser?.assignments?.map(a => a.client).join(', ') || '없음'}
+      `;
+      // 개발 환경에서만 보이도록
+      if (window.location.hostname.includes('localhost')) {
+        debugDiv.style.display = 'block';
+      }
+    }
+
+    function updateProjects() {
+      const selectedClient = document.getElementById("clientSelect").value;
+      const projectSelect = document.getElementById("projectSelect");
+      const equipmentSelect = document.getElementById("equipmentSelect");
+      projectSelect.innerHTML = '<option value="">프로젝트를 선택하세요</option>';
+      equipmentSelect.innerHTML = '<option value="">장비를 선택하세요</option>';
+      projectSelect.disabled = true;
+      equipmentSelect.disabled = true;
+
+      if (!selectedClient || !currentUser.assignments) return;
+
+      const clientData = currentUser.assignments.find(a => a.client === selectedClient);
+      if (clientData && clientData.projects && clientData.projects.length > 0) {
+        clientData.projects.forEach(project => {
+          const option = document.createElement("option");
+          option.value = project.projectName;
+          option.textContent = project.projectName;
+          projectSelect.appendChild(option);
+        });
+        projectSelect.disabled = false;
+      } else {
+        console.warn("선택한 고객사에 프로젝트가 없습니다.");
+      }
+    }
+
+    function updateEquipments() {
+      const selectedClient = document.getElementById("clientSelect").value;
+      const selectedProject = document.getElementById("projectSelect").value;
+      const equipmentSelect = document.getElementById("equipmentSelect");
+      equipmentSelect.innerHTML = '<option value="">장비를 선택하세요</option>';
+      equipmentSelect.disabled = true;
+
+      if (!selectedClient || !selectedProject || !currentUser.assignments) return;
+
+      const clientData = currentUser.assignments.find(a => a.client === selectedClient);
+      if (clientData) {
+        const projectData = clientData.projects.find(p => p.projectName === selectedProject);
+        if (projectData && projectData.equipments && projectData.equipments.length > 0) {
+          projectData.equipments.forEach(equipment => {
+            const option = document.createElement("option");
+            option.value = equipment;
+            option.textContent = equipment;
+            equipmentSelect.appendChild(option);
+          });
+          equipmentSelect.disabled = false;
+        } else {
+          console.warn("선택한 프로젝트에 장비가 없습니다.");
+        }
+      }
+    }
+
+    function showToast(message) {
+      const toast = document.getElementById("toast");
+      toast.textContent = message;
+      toast.classList.add("show");
+      setTimeout(() => {
+        toast.classList.remove("show");
+      }, 1500);
+    }
+
+    async function submitRecord() {
+      // 전역 변수 currentUser를 사용
+      if (!currentUser) {
+          alert("로그인 정보를 찾을 수 없습니다. 다시 로그인해주세요.");
+          window.location.href = 'index.html';
+          return;
+      }
+
+      const manager = currentUser.name;
+      const client = document.getElementById("clientSelect").value;
+      const project = document.getElementById("projectSelect").value;
+      const equipment = document.getElementById("equipmentSelect").value;
+      const date = document.getElementById("date").value;
+      const content = document.getElementById("content").value.trim();
+
+      console.log("전송 데이터:", { manager, client, project, equipment, date, content });
+
+      if (!client || !project || !equipment || !date || !content) {
+          alert("모든 항목을 입력해주세요.");
+          return;
+      }
+
+      const apiBaseUrl = getApiBaseUrl();
+      console.log("API 호출 URL:", `${apiBaseUrl}/api/engineer-record`);
+
+      try {
+          const response = await fetch(`${apiBaseUrl}/api/engineer-record`, {
+              method: "POST",
+              headers: { 
+                  "Content-Type": "application/json"
+              },
+              body: JSON.stringify({
+                  manager,
+                  client,
+                  project,
+                  equipment,
+                  date,
+                  content
+              })
+          });
+
+          console.log("Response status:", response.status);
+          console.log("Response ok:", response.ok);
+
+          if (!response.ok) {
+              const errorText = await response.text();
+              console.error("서버 응답 오류:", errorText);
+              throw new Error(`HTTP ${response.status}: ${errorText}`);
+          }
+
+          const data = await response.json();
+          console.log("성공 응답:", data);
+          
+          showToast("기록이 저장되었습니다.");
+          document.getElementById("content").value = ""; // 내용 초기화
+
+      } catch (error) {
+          console.error("API 호출 오류:", error);
+          
+          // 네트워크 오류인지 확인
+          if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+              alert(`네트워크 연결 오류: 서버에 접근할 수 없습니다.\n서버 URL: ${apiBaseUrl}\n\nCORS 설정이나 서버 상태를 확인해주세요.`);
+          } else {
+              alert(`오류 발생: ${error.message}`);
+          }
+      }
+    }
+  </script>
+
+</body>
+</html>

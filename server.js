@@ -1,3 +1,10 @@
+// 맨 위에 추가
+const { Together } = require('together-ai');
+
+const together = new Together({
+  apiKey: process.env.TOGETHER_API_KEY, // .env에 반드시 설정
+});
+
 require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
@@ -5,6 +12,7 @@ const cors = require('cors');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const axios = require('axios');
 
 const app = express();
 const data = require('./data.js');
@@ -13,7 +21,9 @@ const allowedOrigins = [
   'http://localhost:3000',
   'http://127.0.0.1:5500',
   'http://localhost:5500',
-  'https://ma-helper.netlify.app'
+  'https://mazipsa.netlify.app',
+  'http://127.0.0.1:5502',
+  'http://localhost:5502'
 ];
 
 app.use(cors({
@@ -24,25 +34,12 @@ app.use(cors({
       callback(new Error('CORS 정책에 의해 차단됨: ' + origin));
     }
   },
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
   credentials: true
 }));
 
 app.options('*', cors());
-
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept');
-  res.header('Access-Control-Allow-Credentials', 'true');
-
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
-
-  next();
-});
 
 app.use(express.json());
 
@@ -67,10 +64,12 @@ const EngineerSchema = new mongoose.Schema({
   id: { type: String, required: true, unique: true },
   password: String,
   name: String,
+  role: { type: String, required: true, enum: ['leader', 'member'] },
   gender: String,
   position: String,
   experience: String,
   photo: String,
+  team: String,
   assignments: Array
 });
 const Engineer = mongoose.model('Engineer', EngineerSchema);
@@ -82,18 +81,15 @@ const initializeData = async () => {
     const existingClients = await Client.countDocuments();
     const existingEngineers = await Engineer.countDocuments();
 
-    // 기존 데이터가 있는지 확인
     if (existingClients > 0 && existingEngineers > 0) {
       console.log('✅ 기존 데이터가 존재하므로 초기화를 건너뜁니다.');
       return;
     }
 
-    // === 클라이언트 삽입 ===
     if (existingClients === 0) {
       let insertCount = 0;
       for (const key in data.clients) {
         const clientData = { ...data.clients[key] };
-
         const convertedMaintenanceData = {};
         for (const equipKey in clientData.maintenance_data) {
           const equipData = clientData.maintenance_data[equipKey];
@@ -104,7 +100,6 @@ const initializeData = async () => {
           }
         }
         clientData.maintenance_data = convertedMaintenanceData;
-
         const newClient = new Client(clientData);
         await newClient.save();
         insertCount++;
@@ -113,7 +108,6 @@ const initializeData = async () => {
       console.log(`🚀 총 ${insertCount}개 클라이언트 저장 완료`);
     }
 
-    // === 엔지니어 삽입 ===
     if (existingEngineers === 0) {
       await Engineer.insertMany(data.engineers);
       console.log(`🚀 총 ${data.engineers.length}명 엔지니어 저장 완료`);
@@ -151,7 +145,6 @@ app.post('/api/login', async (req, res) => {
     try {
         const { id, password } = req.body;
         const client = await Client.findOne({ id, password });
-
         if (client) {
             res.json(client);
         } else {
@@ -175,19 +168,37 @@ app.get('/api/client/:id', async (req, res) => {
     }
 });
 
-// ✅ 유지보수 조회
+// ✅ 유지보수 조회 (고객사용) - 수정됨
 app.get('/api/maintenance/:clientId', async (req, res) => {
     try {
-    const client = await Client.findOne({ id: req.params.clientId }); // ← 수정 포인트
+        const client = await Client.findOne({ id: req.params.clientId });
+        if (!client) {
+            return res.status(404).json({ message: "고객사를 찾을 수 없습니다." });
+        }
 
-    if (!client) {
-      return res.status(404).json({ message: "고객사를 찾을 수 없습니다." });
+        const clientFacingData = {};
+        // 장비별로 순회
+        for (const equipment in client.maintenance_data) {
+            if (Object.prototype.hasOwnProperty.call(client.maintenance_data, equipment)) {
+                const records = client.maintenance_data[equipment];
+                if (Array.isArray(records)) {
+                    // '승인' 상태의 기록만 필터링하고, '업무 요약'을 'content'로 바꿔서 전달
+                    clientFacingData[equipment] = records
+                        .map(record => ({
+                            date: record.date,
+                            cycle: record.cycle,
+                            content: record.content_simple, // <-- 수정: 상세 내용 대신 업무 요약을 content 필드로 전달
+                            manager: record.manager
+                        }));
+                }
+            }
+        }
+        res.json(clientFacingData);
+
+    } catch (error) {
+        console.error('고객사용 유지보수 조회 오류:', error);
+        res.status(500).json({ message: "서버 오류", error: error.message });
     }
-
-    res.json(client.maintenance_data);
-  } catch (error) {
-    res.status(500).json({ message: "서버 오류", error: error.message });
-  }
 });
 
 // ✅ 유지보수 추가 (고객사)
@@ -195,16 +206,12 @@ app.post('/api/maintenance/:clientId', async (req, res) => {
     try {
         const { equipment, date, cycle, content, manager } = req.body;
         const client = await Client.findOne({ id: req.params.clientId });
-
         if (!client) return res.status(404).json({ message: "사용자 없음" });
-
         if (!client.maintenance_data[equipment]) {
             client.maintenance_data[equipment] = [];
         }
-
         client.maintenance_data[equipment].push({ date, cycle, content, manager });
         await client.save();
-
         res.json({ message: "추가 완료", maintenance_data: client.maintenance_data });
     } catch (error) {
         console.error('유지보수 추가 오류:', error);
@@ -230,113 +237,77 @@ app.get('/api/engineers', async (req, res) => {
 app.post('/api/engineer-login', async(req, res) => {
     try {
         const { id, password } = req.body;
-        // MongoDB에서 엔지니어 찾기
-    const engineer = await Engineer.findOne({ id, password });
-
-    if (engineer) {
-      res.json({
-        id: engineer.id,
-        name: engineer.name,
-        assignments: engineer.assignments || []
-      });
-    } else {
-      res.status(401).json({ message: 'ID 또는 비밀번호가 잘못되었습니다.' });
+        const engineer = await Engineer.findOne({ id, password });
+        if (engineer) {
+            res.json({
+                id: engineer.id,
+                name: engineer.name,
+                role: engineer.role,
+                team: engineer.team,
+                assignments: engineer.assignments || []
+            });
+        } else {
+            res.status(401).json({ message: 'ID 또는 비밀번호가 잘못되었습니다.' });
+        }
+    } catch (error) {
+        console.error('엔지니어 로그인 오류:', error);
+        res.status(500).json({ message: '서버 오류', error: error.message });
     }
-
-  } catch (error) {
-    console.error('엔지니어 로그인 오류:', error);
-    res.status(500).json({ message: '서버 오류', error: error.message });
-  }
 });
 
-// ✅ 엔지니어 기록 저장 API - 완전히 수정된 버전
+// ✅ 엔지니어 기록 저장 API - 수정됨
 app.post('/api/engineer-record', async (req, res) => {
-    console.log('📌 엔지니어 기록 저장 요청 받음');
-    console.log('요청 본문:', req.body);
-
     try {
-        let { manager, client, project, equipment, date, content } = req.body;
+        const { manager, client, project, equipment, date, content, content_simple } = req.body; // ← 수정: content_simple 추가
 
-        // 필수 항목 검사
-        if (!manager || !client || !project || !equipment || !date || !content) {
-            console.log('❌ 필수 항목 누락:', { manager, client, project, equipment, date, content });
-            return res.status(400).json({
-                message: '필수 항목 누락',
-                missing: {
-                    manager: !manager,
-                    client: !client,
-                    project: !project,
-                    equipment: !equipment,
-                    date: !date,
-                    content: !content
-                }
-            });
+        if (!manager || !client || !project || !equipment || !date || !content || !content_simple) { // ← 수정: content_simple 검증
+            return res.status(400).json({ message: '필수 항목(업무 요약 포함) 누락' });
         }
 
-        // 장비 이름을 대문자로 표준화
-        const equipmentKey = equipment.trim().toUpperCase();
-
-        // 고객사 문서 조회
         const clientDoc = await Client.findOne({ client_name: client });
-
         if (!clientDoc) {
-            const allClients = await Client.find({}, 'client_name id');
-            console.log("❌ 고객사를 찾을 수 없습니다:", client);
-            return res.status(404).json({
-                message: `고객사 '${client}'를 찾을 수 없습니다.`,
-                availableClients: allClients.map(c => ({
-                    name: c.client_name,
-                    id: c.id
-                }))
-            });
+            return res.status(404).json({ message: `고객사 '${client}'를 찾을 수 없습니다.` });
         }
-
-        console.log("✅ 고객사 찾음:", clientDoc.client_name);
-
-        // maintenance_data 구조 초기화
-        if (!clientDoc.maintenance_data) {
-            clientDoc.maintenance_data = {};
-        }
-
-        // 해당 장비 키가 없거나 배열이 아니면 새 배열 생성
+        
+        if (!clientDoc.maintenance_data) clientDoc.maintenance_data = {};
+        
+        const equipmentKey = equipment.trim();
         if (!Array.isArray(clientDoc.maintenance_data[equipmentKey])) {
-            console.log(`⚠️ '${equipmentKey}' 장비에 대한 기록이 없거나 형식이 잘못됨. 새로 생성.`);
             clientDoc.maintenance_data[equipmentKey] = [];
         }
 
-        // 기록 추가
         const newRecord = {
             date,
-            cycle: "비정기",
-            content,
-            manager
+            cycle: "발생시",
+            content,          // ← 상세 내용
+            content_simple,   // ← 추가: 업무 요약
+            manager,
+            status: '대기',
+            reviewedBy: null,
+            reviewedAt: null
         };
 
         clientDoc.maintenance_data[equipmentKey].push(newRecord);
-
-        // ❗ 이 줄이 반드시 있어야 DB에 반영됨
         clientDoc.markModified(`maintenance_data.${equipmentKey}`);
-
-        // MongoDB에 저장
         await clientDoc.save();
+        
+        const savedRecordForResponse = {
+             id: `${clientDoc.id}_${equipmentKey}_${date}_${new Date().getTime()}`,
+             project: clientDoc.business_info?.project_name || equipmentKey,
+             client: clientDoc.client_name,
+             equipment: equipmentKey,
+             date: newRecord.date,
+             performer: newRecord.manager,
+             content: newRecord.content,               // ← 상세 내용 (엔지니어용)
+             content_simple: newRecord.content_simple, // ← 추가: 업무 요약 (엔지니어용)
+             status: newRecord.status
+        };
 
-        console.log(`✅ 기록 저장 성공: ${clientDoc.client_name} - ${equipmentKey}`);
-        console.log("📄 저장된 기록:", newRecord);
-
-        res.json({
-            message: "엔지니어 기록 저장 성공",
-            savedRecord: newRecord,
-            client: clientDoc.client_name,
-            equipment: equipmentKey
-        });
+        res.status(201).json(savedRecordForResponse);
 
     } catch (error) {
         console.error("❌ 기록 저장 오류:", error);
-        res.status(500).json({
-            message: "서버 오류",
-            error: error.message,
-            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
-        });
+        res.status(500).json({ message: "서버 오류" });
     }
 });
 
@@ -375,6 +346,30 @@ app.get('/api/test', (req, res) => {
     });
 });
 
+// ⭐ 주기적으로 서버를 깨우는 로직 추가 ⭐
+// 렌더에서 배포된 실제 서비스의 URL로 바꿔줘야 해!
+// 예를 들어, 'https://너의서비스이름.onrender.com' 이런 식일 거야.
+const SERVICE_URL = process.env.SERVICE_URL || 'https://mazipsa.onrender.com'
+const PING_INTERVAL = process.env.PING_INTERVAL || 5 * 60 * 1000; // 5분마다 한 번씩 (밀리초)
+
+function pingServer() {
+    axios.get(`${SERVICE_URL}/api/test`)
+        .then(response => {
+            console.log(`서버 자가 호출 성공: ${response.data.message} (At ${new Date().toLocaleString()})`);
+        })
+        .catch(error => {
+            console.error(`서버 자가 호출 실패: ${error.message} (At ${new Date().toLocaleString()})`);
+        });
+}
+
+// 서버가 시작되면 바로 핑 시작
+// 렌더 환경에서는 이 부분이 바로 실행되도록 ensureInitialized 같은 함수를 호출할 수도 있음
+// 또는 간단히 아래처럼 setTimeout을 사용하여 서버 시작 후 바로 호출
+setTimeout(() => {
+    pingServer(); // 첫 호출
+    setInterval(pingServer, PING_INTERVAL); // 이후 주기적으로 호출
+}, 5000); // 서버 시작 5초 후 첫 호출 (서버가 완전히 로드될 시간을 줌)
+
 // ✅ 클라이언트 목록 조회 API 추가 (디버깅용)
 app.get('/api/clients', async (req, res) => {
     try {
@@ -388,6 +383,233 @@ app.get('/api/clients', async (req, res) => {
         console.error('클라이언트 목록 조회 오류:', error);
         res.status(500).json({ message: "서버 오류", error: error.message });
     }
+});
+
+// 엔지니어별 업무 기록 조회 - 수정됨
+app.get('/api/engineer-records/:engineerId', async (req, res) => {
+    try {
+        const engineerId = req.params.engineerId;
+        const engineer = await Engineer.findOne({ id: engineerId });
+        if (!engineer) {
+            return res.json([]);
+        }
+        
+        const engineerName = engineer.name;
+        const clients = await Client.find({});
+        const engineerRecords = [];
+        
+        clients.forEach(client => {
+            if (client.maintenance_data) {
+                Object.keys(client.maintenance_data).forEach(equipment => {
+                    const records = client.maintenance_data[equipment];
+                    if (Array.isArray(records)) {
+                        records.forEach((record, index) => {
+                            if (record.manager === engineerName) {
+                                engineerRecords.push({
+                                    id: `${client.id}_${equipment}_${record.date}_${index}`,
+                                    project: client.business_info?.project_name || equipment,
+                                    client: client.client_name,
+                                    equipment: equipment,
+                                    date: record.date,
+                                    performer: record.manager,
+                                    content: record.content, // ← 수정: 상세 내용 전달
+                                    content_simple: record.content_simple, // ← 추가: 업무 요약도 전달
+                                    status: record.status || '승인'
+                                });
+                            }
+                        });
+                    }
+                });
+            }
+        });
+        
+        engineerRecords.sort((a, b) => new Date(b.date) - new Date(a.date));
+        res.json(engineerRecords);
+    } catch (error) {
+        console.error('❌ 엔지니어 기록 조회 오류:', error);
+        res.status(500).json({ message: '서버 오류' });
+    }
+});
+
+// ✅ 엔지니어 기록 수정 API
+app.patch('/api/engineer-record/:recordId', async (req, res) => {
+  try {
+    const { recordId } = req.params;
+    const { date, content } = req.body; // 수정할 항목
+    const [clientId, equipment, originalDate, recordIndex] = recordId.split('_');
+
+    const client = await Client.findOne({ id: clientId });
+    if (!client) return res.status(404).json({ message: "고객사를 찾을 수 없습니다." });
+
+    const records = client.maintenance_data?.[equipment];
+    const record = records?.[parseInt(recordIndex)];
+
+    if (!record || record.date !== originalDate) {
+      return res.status(404).json({ message: "해당 업무 기록을 찾을 수 없습니다." });
+    }
+
+    // 필드 수정
+    if (date) record.date = date;
+    if (content) record.content = content;
+
+    // 수정되었음을 mongoose에 알림
+    client.markModified(`maintenance_data.${equipment}`);
+    await client.save();
+
+    res.json({
+      message: '업무 기록 수정 완료',
+      updatedRecord: {
+        id: recordId,
+        client: client.client_name,
+        equipment,
+        date: record.date,
+        performer: record.manager,
+        content: record.content,
+        status: record.status
+      }
+    });
+  } catch (error) {
+    console.error('❌ 기록 수정 오류:', error);
+    res.status(500).json({ message: '서버 오류', error: error.message });
+  }
+});
+
+// 업무 기록 상태 변경(승인/반려) API
+app.patch('/api/engineer-record/:recordId/approve', async (req, res) => {
+  try {
+    const { status, reviewer } = req.body;
+    const { recordId } = req.params;
+    
+    const [clientId, equipment, originalDate, recordIndex] = recordId.split('_');
+    
+    const client = await Client.findOne({ id: clientId });
+    if (!client) return res.status(404).json({ message: "고객사를 찾을 수 없습니다." });
+
+    const records = client.maintenance_data?.[equipment];
+    const record = records?.[parseInt(recordIndex)];
+
+    if (!record || record.date !== originalDate) {
+        return res.status(404).json({ message: "해당 업무 기록을 찾을 수 없습니다." });
+    }
+
+    record.status = status;
+    record.reviewedBy = reviewer;
+    record.reviewedAt = new Date().toISOString();
+
+    client.markModified(`maintenance_data.${equipment}`);
+    await client.save();
+
+    res.json({ message: '상태 변경 완료', updatedRecord: record });
+  } catch(error) {
+     console.error('❌ 상태 변경 오류:', error);
+     res.status(500).json({ message: '서버 오류' });
+  }
+});
+
+// 팀장용: 팀원 승인 대기 기록 조회 API
+app.get('/api/team-records/:leaderId', async (req, res) => {
+  try {
+    const leader = await Engineer.findOne({ id: req.params.leaderId });
+    if (!leader || leader.role !== 'leader') {
+      return res.status(403).json({ message: "팀장 권한이 없습니다." });
+    }
+
+    const clients = await Client.find({});
+    const recordsToApprove = [];
+
+    clients.forEach(client => {
+      Object.entries(client.maintenance_data || {}).forEach(([equipment, list]) => {
+        if (Array.isArray(list)) {
+            list.forEach((record, index) => {
+                if (record.status === '대기') {
+                    recordsToApprove.push({
+                        id: `${client.id}_${equipment}_${record.date}_${index}`,
+                        client: client.client_name,
+                        project: client.business_info?.project_name || equipment,
+                        equipment,
+                        date: record.date,
+                        performer: record.manager,
+                        content: record.content, // 팀장은 상세 내용을 보고 승인해야 함
+                        status: record.status
+                    });
+                }
+            });
+        }
+      });
+    });
+
+    recordsToApprove.sort((a, b) => new Date(a.date) - new Date(b.date));
+    res.json(recordsToApprove);
+  } catch (error) {
+     console.error('❌ 팀 기록 조회 오류:', error);
+     res.status(500).json({ message: '서버 오류' });
+  }
+});
+
+// AI 응답 생성 API
+app.post('/api/ai-chat', async (req, res) => {
+  const { prompt } = req.body;
+  if (!prompt) {
+    return res.status(400).json({ message: '프롬프트가 없습니다.' });
+  }
+  try {
+    const result = await together.chat.completions.create({
+      model: 'openai/gpt-oss-20b',
+      messages: [{ role: 'user', content: prompt }],
+    });
+    const reply = result.choices?.[0]?.message?.content || '응답 없음';
+    res.json({ reply });
+  } catch (error) {
+    console.error('AI 응답 오류:', error);
+    res.status(500).json({ message: 'AI 호출 실패', error: error.message });
+  }
+});
+
+// ✅ 엔지니어 개별 시간 메모 스키마
+const TimeMemoSchema = new mongoose.Schema({
+  engineerId: { type: String, required: true },
+  date: { type: String, required: true }, // YYYY-MM-DD
+  time: { type: String, required: true }, // HH:MM
+  text: { type: String, required: true },
+  createdAt: { type: Date, default: Date.now }
+});
+
+const TimeMemo = mongoose.model('TimeMemo', TimeMemoSchema);
+
+// ✅ 엔지니어 시간별 메모 저장
+app.post('/api/engineer-memo', async (req, res) => {
+  try {
+    const { engineerId, date, time, text } = req.body;
+
+    if (!engineerId || !date || !time || !text) {
+      return res.status(400).json({ message: '모든 필드를 입력해야 합니다.' });
+    }
+
+    const memo = new TimeMemo({ engineerId, date, time, text });
+    await memo.save();
+
+    res.status(201).json({ message: '메모 저장 완료', memo });
+  } catch (error) {
+    console.error('❌ 메모 저장 오류:', error);
+    res.status(500).json({ message: '서버 오류', error: error.message });
+  }
+});
+
+// ✅ 특정 날짜 메모 조회
+app.get('/api/engineer-memo/:engineerId', async (req, res) => {
+  try {
+    const { engineerId } = req.params;
+    const { date } = req.query;
+
+    const query = { engineerId };
+    if (date) query.date = date;
+
+    const memos = await TimeMemo.find(query).sort({ date: 1, time: 1 });
+    res.json(memos);
+  } catch (error) {
+    console.error('❌ 메모 조회 오류:', error);
+    res.status(500).json({ message: '서버 오류', error: error.message });
+  }
 });
 
 // ✅ 404 에러 처리
