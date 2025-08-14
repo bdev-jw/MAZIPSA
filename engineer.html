@@ -1125,15 +1125,15 @@
                     <div class="stats-grid">
                         <div class="stat-card">
                             <span class="stat-number" id="totalWorks">0</span>
-                            <div class="stat-label">총 기록</div>
+                            <div class="stat-label">년간 기록</div>
                         </div>
                         <div class="stat-card">
                             <span class="stat-number" id="monthlyWorks">0</span>
-                            <div class="stat-label">이번 달</div>
+                            <div class="stat-label">월간 기록</div>
                         </div>
                         <div class="stat-card">
                             <span class="stat-number" id="weeklyWorks">0</span>
-                            <div class="stat-label">이번 주</div>
+                            <div class="stat-label">금주 기록</div>
                         </div>
                     </div>
                 </div>
@@ -2128,11 +2128,13 @@ ${userQuery}
         function previousMonth() {
             currentDate.setMonth(currentDate.getMonth() - 1);
             updateCalendar();
+            updateStats();
         }
 
         function nextMonth() {
             currentDate.setMonth(currentDate.getMonth() + 1);
             updateCalendar();
+            updateStats();
         }
         function goToToday() {
             const today = new Date();
@@ -2146,39 +2148,78 @@ ${userQuery}
             document.getElementById('workDate').value = todayStr;
 
             updateCalendar();
+            updateStats();
         }
 
-        // updateStats 함수 전체 수정
-        function updateStats() {
-            // '기타' 고객사 제외한 업무 기록만 필터링
-            const filteredRecords = workRecords.filter(work => work.client !== '기타');
-            
-            const now = new Date();
-            const thisMonth = filteredRecords.filter(work => {
-                const workDate = new Date(work.date);
-                return workDate.getMonth() === now.getMonth() && workDate.getFullYear() === now.getFullYear();
-            });
-            const thisWeekStart = new Date(now.setDate(now.getDate() - now.getDay()));
-            const thisWeek = filteredRecords.filter(work => new Date(work.date) >= thisWeekStart);
-            
-            document.getElementById('totalWorks').textContent = filteredRecords.length;
-            document.getElementById('monthlyWorks').textContent = thisMonth.length;
-            document.getElementById('weeklyWorks').textContent = thisWeek.length;
-        }
+        // 안전한 날짜 파서 (YYYY-MM-DD → Date, 타임존 이슈 방지)
+function parseYMD(ymd) {
+    if (!ymd) return new Date('Invalid');
+    const [y, m, d] = ymd.split('-').map(Number);
+    return new Date(y, m - 1, d);
+}
 
-        function populateTimeDropdown() {
-            const timeSelect = document.getElementById('memoTime');
-            timeSelect.innerHTML = '';
-            for (let hour = 0; hour < 24; hour++) {
-                for (let min = 0; min < 60; min += 30) {
-                    const time = `${String(hour).padStart(2, '0')}:${String(min).padStart(2, '0')}`;
-                    const option = document.createElement('option');
-                    option.value = time;
-                    option.textContent = time;
-                    timeSelect.appendChild(option);
-                }
-            }
+// updateStats 함수 - 요구사항 반영
+function updateStats() {
+    // 달력과 동일한 기준: 승인 + '기타' 제외
+    const base = (workRecords || []).filter(w =>
+        w &&
+        w.status === '승인' &&
+        w.client &&
+        w.client.trim() !== '기타'
+    );
+
+    // 1) 총 기록: "올해" 전체(실제 날짜 기준)
+    const now = new Date();
+    const yearNow = now.getFullYear();
+    const totalThisYear = base.filter(w => parseYMD(w.date).getFullYear() === yearNow).length;
+
+    // 2) 이번 달: "달력에 표시 중인 월" 기준 (currentDate 사용)
+    // (달력 렌더가 currentDate로 돌아가고 있음)
+    const cal = currentDate instanceof Date ? currentDate : new Date();
+    const calYear = cal.getFullYear();
+    const calMonth = cal.getMonth(); // 0-11
+    const totalThisMonth = base.filter(w => {
+        const d = parseYMD(w.date);
+        return d.getFullYear() === calYear && d.getMonth() === calMonth;
+    }).length;
+
+    // 3) 이번 주: "오늘이 속한 주"(일~토) 기준, 달력과 무관
+    const weekStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - now.getDay());
+    const weekEnd   = new Date(weekStart.getFullYear(), weekStart.getMonth(), weekStart.getDate() + 6);
+    const totalThisWeek = base.filter(w => {
+        const d = parseYMD(w.date);
+        return d >= weekStart && d <= weekEnd;
+    }).length;
+
+    // UI 반영 (총 기록 / 이번 달 / 이번 주)
+    // 이 ID들은 오른쪽 패널 "업무 통계" 카드에 존재합니다.
+    document.getElementById('totalWorks').textContent   = totalThisYear;
+    document.getElementById('monthlyWorks').textContent = totalThisMonth;
+    document.getElementById('weeklyWorks').textContent  = totalThisWeek;
+
+    // 콘솔 확인용
+    console.log({ totalThisYear, totalThisMonth, totalThisWeek, calYear, calMonth, weekStart, weekEnd });
+}
+
+// 시간 선택 드롭다운 채우기
+function populateTimeDropdown(selectedTime = "") {
+    const timeSelect = document.getElementById('memoTime');
+    if (!timeSelect) return;
+
+    timeSelect.innerHTML = "";
+
+    // 00:00 ~ 23:00까지 시간 옵션 생성
+    for (let hour = 0; hour < 24; hour++) {
+        const hourStr = hour.toString().padStart(2, "0") + ":00";
+        const option = document.createElement("option");
+        option.value = hourStr;
+        option.textContent = hourStr;
+        if (hourStr === selectedTime) {
+            option.selected = true;
         }
+        timeSelect.appendChild(option);
+    }
+}
 
         // openTimeMemoModal 함수 전체 교체
         function openTimeMemoModal(dateString, memos = []) {
