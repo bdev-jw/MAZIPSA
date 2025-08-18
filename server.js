@@ -265,7 +265,9 @@ app.post('/api/engineer-record', async (req, res) => {
           고객사: ${client}
           프로젝트: ${project}
           장비: ${equipment}
-          날짜: ${date}`);
+          날짜: ${date}
+          업무 요약: ${content_simple}
+          상세 내용: ${content}`);
 
         if (!manager || !client || !project || !equipment || !date || !content || !content_simple) { // ← 수정: content_simple 검증
             return res.status(400).json({ message: '필수 항목(업무 요약 포함) 누락' });
