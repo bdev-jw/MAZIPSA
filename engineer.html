@@ -1431,16 +1431,15 @@ ${userQuery}
                 document.getElementById('approvalPanel').style.display = 'none'; // 팀원은 승인 패널 숨김
                 renderPendingWorks()
             }
-            // 🔽 새로운 함수 추가
-            // 엔지니어의 모든 시간별 메모 로드
-            async function loadTimeMemos() {
-                try {
-                    const response = await fetch(`${API_BASE}/engineer-memo/${currentUser.id}`);
-                    if (!response.ok) throw new Error('메모를 불러올 수 없습니다.');
-                    timeMemos = await response.json();
-                } catch (error) {
-                    console.error('메모 로드 실패:', error);
-                }
+        }
+        // 엔지니어의 모든 시간별 메모 로드 (전역 스코프로 이동)
+        async function loadTimeMemos() {
+            try {
+                const response = await fetch(`${API_BASE}/engineer-memo/${currentUser.id}`);
+                if (!response.ok) throw new Error('메모를 불러올 수 없습니다.');
+                timeMemos = await response.json();
+            } catch (error) {
+                console.error('메모 로드 실패:', error);
             }
         }
 
@@ -1449,7 +1448,7 @@ ${userQuery}
             try {
                 
                 await loadEngineerData(); // 엔지니어 데이터 로드 (고객사/프로젝트/장비 목록용)
-                
+                await loadTimeMemos(); // ✅ 시간별 메모 로드 호출 추가
                 await loadWorkRecords(); // 기존 업무 기록 로드
                 updateCalendar();
                 updateStats();
