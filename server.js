@@ -294,6 +294,10 @@ app.post('/api/engineer-record', async (req, res) => {
             reviewedAt: null
         };
 
+        clientDoc.maintenance_data[equipmentKey].push(newRecord);
+        clientDoc.markModified(`maintenance_data.${equipmentKey}`);
+        await clientDoc.save();
+
         // ✅ 저장 성공 로그 남기기
         console.log(`📌 [업무 기록 저장] ${manager} - ${client}/${equipmentKey} (${date}) 저장 완료`);
 
