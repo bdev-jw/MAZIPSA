@@ -727,74 +727,10 @@
             background: linear-gradient(135deg, #718096 0%, #a0aec0 100%);
         }
 
-        .record-container {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 20px;
-        }
-
         @media (min-width: 1200px) {
             .record-container {
                 grid-template-columns: 1fr 1fr;
             }
-        }
-        
-        .work-status {
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: 700;
-            margin-left: 10px;
-            color: white;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        .work-status.approved { 
-            background: linear-gradient(135deg, #38a169 0%, #48bb78 100%);
-            box-shadow: 0 2px 8px rgba(56, 161, 105, 0.3);
-        }
-        .work-status.rejected { 
-            background: linear-gradient(135deg, #e53e3e 0%, #fc8181 100%);
-            box-shadow: 0 2px 8px rgba(229, 62, 62, 0.3);
-        }
-        
-        .approval-item .work-meta {
-            font-size: 0.95rem;
-            margin-bottom: 10px;
-            font-weight: 600;
-        }
-        
-        .approval-item .work-content {
-            background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
-            padding: 15px;
-            border-radius: 12px;
-            margin-bottom: 15px;
-            border: 1px solid #e2e8f0;
-        }
-
-        .approval-actions {
-            display: flex;
-            justify-content: flex-end;
-            gap: 12px;
-        }
-
-        .approval-actions .btn {
-            width: auto;
-            padding: 8px 16px;
-            font-size: 0.85rem;
-        }
-        .approval-actions .btn-reject {
-            background: linear-gradient(135deg, #e53e3e 0%, #fc8181 100%);
-            box-shadow: 0 4px 15px rgba(229, 62, 62, 0.3);
-        }
-        .approval-actions .btn-reject:hover {
-            background: linear-gradient(135deg, #c53030 0%, #e53e3e 100%);
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(197, 48, 48, 0.4);
-        }
-        
-        #approvalPanel {
-            display: none;
         }
 
         /* 페이지네이션 스타일 추가 */
@@ -1171,20 +1107,6 @@
                         </div>
                     </div>
                 </div>
-
-                <div class="card" id="waitPanel">
-                    <div class="card-header">승인 대기</div>
-                        <div class="work-list" id="waitList">
-                            <div class="no-data">기록이 없습니다</div>
-                        </div>
-                    </div>
-
-                <div class="card" id="approvalPanel">
-                    <div class="card-header">팀원 업무 승인</div>
-                        <div class="work-list" id="approvalList">
-                            <div class="no-data">승인 대기 중인 기록이 없습니다.</div>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
@@ -1420,17 +1342,6 @@ ${userQuery}
             await loadInitialData(); // 데이터 로딩
 
             goToToday(); // 달력 오늘로 이동
-
-            // 역할에 따라 승인 패널 UI 처리
-            if (currentUser && currentUser.role === 'leader') {
-                document.getElementById('approvalPanel').style.display = 'block';
-                document.getElementById('waitPanel').style.display = 'none';
-                loadApprovalList(); // 팀장일 경우 승인 목록 로드
-            } else {
-                document.getElementById('waitPanel').style.display = 'block';
-                document.getElementById('approvalPanel').style.display = 'none'; // 팀원은 승인 패널 숨김
-                renderPendingWorks()
-            }
         }
         // 엔지니어의 모든 시간별 메모 로드 (전역 스코프로 이동)
         async function loadTimeMemos() {
@@ -1526,9 +1437,6 @@ ${userQuery}
             const startIndex = (page - 1) * recordsPerPage;
             const endIndex = startIndex + recordsPerPage;
             const recordsToShow = records.slice(startIndex, endIndex);
-
-            // 상태 매핑
-            const statusMap = { '대기': 'pending', '승인': 'approved', '반려': 'rejected' };
 
             // 업무 기록 렌더링
             workList.innerHTML = recordsToShow.map(work => `
@@ -1736,108 +1644,8 @@ ${userQuery}
         // 내 업무 목록 UI 업데이트 (페이지네이션 적용)
         function updateWorkList() {
             const filteredRecords = workRecords.filter(work => 
-                work.status === '승인' && work.client && work.client.trim() !== '기타');
+                work.status && work.client && work.client.trim() !== '기타');
             renderWorkRecordsWithPagination(filteredRecords, currentPage);
-        }
-
-        // --- 신규 기능: 팀원 업무 승인 관련 함수 ---
-
-        // 팀장용: 승인 대기 목록 로드
-        async function loadApprovalList() {
-            const approvalList = document.getElementById('approvalList');
-            approvalList.innerHTML = '<div class="loading">승인 대기 목록을 불러오는 중...</div>';
-
-            try {
-                const response = await fetch(`${API_BASE}/team-records/${currentUser.id}`);
-                if (!response.ok) throw new Error('승인 목록을 불러올 수 없습니다.');
-
-                const recordsToApprove = await response.json();
-
-                if (recordsToApprove.length === 0) {
-                    approvalList.innerHTML = '<div class="no-data">승인 대기 중인 기록이 없습니다.</div>';
-                    return;
-                }
-                
-                approvalList.innerHTML = recordsToApprove.map(record => `
-                    <div class="work-item approval-item" id="approval-${record.id}">
-                        <div class="work-header">
-                            <div class="project-name">${record.project}</div>
-                            <div class="work-date">${formatDate(record.date)}</div>
-                        </div>
-                        <div class="work-meta">
-                            <strong>담당자:</strong> ${record.performer} <br>
-                            <strong>고객사:</strong> ${record.client} <br>
-                            <strong>장비:</strong> ${record.equipment}
-                        </div>
-                        <div class="work-content">${record.content}</div>
-                        <div class="approval-actions">
-                            <button class="btn btn-reject" onclick="handleApproval('${record.id}', '반려')">반려</button>
-                            <button class="btn" onclick="handleApproval('${record.id}', '승인')">승인</button>
-                        </div>
-                    </div>
-                `).join('');
-
-            } catch (error) {
-                console.error("승인 목록 로드 오류:", error);
-                approvalList.innerHTML = `<div class="error">${error.message}</div>`;
-            }
-        }
-        
-        // 승인/반려 처리 함수
-        async function handleApproval(recordId, newStatus) {
-            const confirmAction = confirm(`해당 기록을 '${newStatus}' 처리하시겠습니까?`);
-            if (!confirmAction) return;
-
-            try {
-                const response = await fetch(`${API_BASE}/engineer-record/${recordId}/approve`, {
-                    method: 'PATCH',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        status: newStatus,
-                        reviewer: currentUser.name
-                    })
-                });
-
-                if (response.ok) {
-                    alert(`업무 기록이 '${newStatus}' 처리되었습니다.`);
-                    const itemToRemove = document.getElementById(`approval-${recordId}`);
-                    if (itemToRemove) itemToRemove.remove();
-                    
-                    const approvalList = document.getElementById('approvalList');
-                    if (approvalList.childElementCount === 0) {
-                         approvalList.innerHTML = '<div class="no-data">승인 대기 중인 기록이 없습니다.</div>';
-                    }
-                    loadWorkRecords(); // 내 기록 목록도 새로고침
-                } else {
-                    const errorData = await response.json();
-                    throw new Error(errorData.message || '처리 중 오류 발생');
-                }
-            } catch (error) {
-                alert(`오류: ${error.message}`);
-            }
-        }
-
-        function renderPendingWorks() {
-            const waitList = document.getElementById('waitList');
-            const pendingRecords = workRecords.filter(w => w.status === '대기');
-
-            if (pendingRecords.length === 0) {
-                waitList.innerHTML = '<div class="no-data">기록이 없습니다</div>';
-                return;
-            }
-
-            waitList.innerHTML = pendingRecords.map(work => `
-                <div class="work-item">
-                    <div class="work-header">
-                        <div class="project-name">${work.project}</div>
-                        <div>
-                            <span class="work-date">${formatDate(work.date)}</span>
-                        </div>
-                    </div>
-                    <div class="work-meta">${work.client} · ${work.equipment}</div>
-                    <div class="work-content">${work.content}</div>
-                </div>
-            `).join('');
         }
 
         // 업무 기록 추가
@@ -1870,11 +1678,10 @@ ${userQuery}
                 
                 if (response.ok) {
                     const newRecord = await response.json();
-                    showMessage('업무 기록이 저장되었습니다. 팀장 승인 후 반영됩니다.', 'success', 'formMessage');
+                    showMessage('업무 기록이 저장되었습니다.', 'success', 'formMessage');
                     clearForm();
                     workRecords.unshift(newRecord);
                     updateWorkList();
-                    renderPendingWorks();
                     updateCalendar();
                     updateStats();
                 } else {
@@ -2099,7 +1906,7 @@ ${userQuery}
                 if (isSelected) classes += ' selected';
                 const dayWorks = workRecords.filter(work => 
                     work.date === dateString && 
-                    work.status === '승인' && // '승인' 상태인 기록만 카운트
+                    work.status && 
                     work.client !== '기타'
                 );
                 
@@ -2162,7 +1969,7 @@ function updateStats() {
     // 달력과 동일한 기준: 승인 + '기타' 제외
     const base = (workRecords || []).filter(w =>
         w &&
-        w.status === '승인' &&
+        w.status &&
         w.client &&
         w.client.trim() !== '기타'
     );

@@ -291,9 +291,7 @@ app.post('/api/engineer-record', async (req, res) => {
             content,          // ← 상세 내용
             content_simple,   // ← 추가: 업무 요약
             manager,
-            status: '대기',
-            reviewedBy: null,
-            reviewedAt: null
+            status: '등록'
         };
 
         clientDoc.maintenance_data[equipmentKey].push(newRecord);
@@ -312,7 +310,7 @@ app.post('/api/engineer-record', async (req, res) => {
             performer: newRecord.manager,
             content: newRecord.content,
             content_simple: newRecord.content_simple,
-            status: newRecord.status
+            status: '등록'
         });
 
     } catch (error) {
@@ -487,97 +485,6 @@ app.patch('/api/engineer-record/:recordId', async (req, res) => {
   } catch (error) {
     console.error('❌ 기록 수정 오류:', error);
     res.status(500).json({ message: '서버 오류', error: error.message });
-  }
-});
-
-// ✅ 업무 기록 승인/반려 API - 반려 시 DB 삭제 기능 추가
-app.patch('/api/engineer-record/:recordId/approve', async (req, res) => {
-    try {
-        console.log(`🔄 [상태 변경 요청] /api/engineer-record/${req.params.recordId}/approve`);
-
-        const { status, reviewer } = req.body;
-        const { recordId } = req.params;
-        const [clientId, equipment, originalDate, recordIndex] = recordId.split('_');
-
-        const client = await Client.findOne({ id: clientId });
-        if (!client) {
-            console.warn(`⚠️ 고객사 ID ${clientId}를 찾을 수 없음`);
-            return res.status(404).json({ message: "고객사를 찾을 수 없습니다." });
-        }
-
-        const records = client.maintenance_data?.[equipment];
-        const record = records?.[parseInt(recordIndex)];
-
-        if (!record || record.date !== originalDate) {
-            console.warn('⚠️ 해당 업무 기록을 찾을 수 없음');
-            return res.status(404).json({ message: "해당 업무 기록을 찾을 수 없습니다." });
-        }
-
-        // ✅ 반려인 경우, 해당 기록을 DB에서 삭제
-        if (status === '반려') {
-            records.splice(parseInt(recordIndex), 1); // 해당 index 항목 삭제
-            client.markModified(`maintenance_data.${equipment}`);
-            await client.save();
-
-            console.log(`🗑️ [반려 삭제 완료] ${record.manager} - ${client.client_name}/${equipment} (${originalDate})`);
-
-            return res.json({ message: '반려된 기록은 삭제되었습니다.' });
-        }
-
-        // ✅ 승인 처리
-        record.status = status; // "승인"
-        record.reviewedBy = reviewer;
-        record.reviewedAt = new Date().toISOString();
-
-        client.markModified(`maintenance_data.${equipment}`);
-        await client.save();
-
-        console.log(`✅ [상태 변경 완료] ${record.manager} - ${client.client_name}/${equipment} (${status})`);
-
-        res.json({ message: '상태 변경 완료', updatedRecord: record });
-    } catch (error) {
-        console.error('❌ 상태 변경 오류:', error);
-        res.status(500).json({ message: '서버 오류' });
-    }
-});
-
-// 팀장용: 팀원 승인 대기 기록 조회 API
-app.get('/api/team-records/:leaderId', async (req, res) => {
-  try {
-    const leader = await Engineer.findOne({ id: req.params.leaderId });
-    if (!leader || leader.role !== 'leader') {
-      return res.status(403).json({ message: "팀장 권한이 없습니다." });
-    }
-
-    const clients = await Client.find({});
-    const recordsToApprove = [];
-
-    clients.forEach(client => {
-      Object.entries(client.maintenance_data || {}).forEach(([equipment, list]) => {
-        if (Array.isArray(list)) {
-            list.forEach((record, index) => {
-                if (record.status === '대기') {
-                    recordsToApprove.push({
-                        id: `${client.id}_${equipment}_${record.date}_${index}`,
-                        client: client.client_name,
-                        project: client.business_info?.project_name || equipment,
-                        equipment,
-                        date: record.date,
-                        performer: record.manager,
-                        content: record.content, // 팀장은 상세 내용을 보고 승인해야 함
-                        status: record.status
-                    });
-                }
-            });
-        }
-      });
-    });
-
-    recordsToApprove.sort((a, b) => new Date(a.date) - new Date(b.date));
-    res.json(recordsToApprove);
-  } catch (error) {
-     console.error('❌ 팀 기록 조회 오류:', error);
-     res.status(500).json({ message: '서버 오류' });
   }
 });
 
