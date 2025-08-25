@@ -74,6 +74,17 @@ const EngineerSchema = new mongoose.Schema({
 });
 const Engineer = mongoose.model('Engineer', EngineerSchema);
 
+// ✅ 엔지니어 개별 시간 메모 스키마 (TimeMemo 대신 올바른 위치로 이동)
+const TimeMemoSchema = new mongoose.Schema({
+  engineerId: { type: String, required: true },
+  date: { type: String, required: true }, // YYYY-MM-DD
+  time: { type: String, required: true }, // HH:MM
+  text: { type: String, required: true },
+  createdAt: { type: Date, default: Date.now }
+});
+
+const TimeMemo = mongoose.model('TimeMemo', TimeMemoSchema);
+
 // ✅ 데이터 초기화
 const initializeData = async () => {
   console.log('📌 데이터 초기화 시작...');
@@ -355,15 +366,12 @@ app.get('/api/test', (req, res) => {
 });
 
 // ⭐ 주기적으로 서버를 깨우는 로직 추가 ⭐
-// 렌더에서 배포된 실제 서비스의 URL로 바꿔줘야 해!
-// 예를 들어, 'https://너의서비스이름.onrender.com' 이런 식일 거야.
 const SERVICE_URL = process.env.SERVICE_URL || 'https://ma-helper.onrender.com'
 const PING_INTERVAL = process.env.PING_INTERVAL || 5 * 60 * 1000; // 5분마다 한 번씩 (밀리초)
 
 function pingServer() {
     axios.get(`${SERVICE_URL}/api/test`)
         .then(response => {
-            console.log(`서버 자가 호출 성공: ${response.data.message} (At ${new Date().toLocaleString()})`);
         })
         .catch(error => {
             console.error(`서버 자가 호출 실패: ${error.message} (At ${new Date().toLocaleString()})`);
@@ -507,17 +515,6 @@ app.post('/api/ai-chat', async (req, res) => {
   }
 });
 
-// ✅ 엔지니어 개별 시간 메모 스키마
-const TimeMemoSchema = new mongoose.Schema({
-  engineerId: { type: String, required: true },
-  date: { type: String, required: true }, // YYYY-MM-DD
-  time: { type: String, required: true }, // HH:MM
-  text: { type: String, required: true },
-  createdAt: { type: Date, default: Date.now }
-});
-
-const TimeMemo = mongoose.model('TimeMemo', TimeMemoSchema);
-
 // ✅ 엔지니어 시간별 메모 저장
 app.post('/api/engineer-memo', async (req, res) => {
   try {
@@ -551,6 +548,49 @@ app.get('/api/engineer-memo/:engineerId', async (req, res) => {
   } catch (error) {
     console.error('❌ 메모 조회 오류:', error);
     res.status(500).json({ message: '서버 오류', error: error.message });
+  }
+});
+
+// 메모 수정 (PATCH) API
+app.patch('/api/engineer-memo/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { time, text } = req.body;
+
+    // TimeMemo 모델 사용 (EngineerMemo가 아닌)
+    const updatedMemo = await TimeMemo.findByIdAndUpdate(
+      id,
+      { time, text },
+      { new: true }
+    );
+
+    if (!updatedMemo) {
+      return res.status(404).json({ message: '메모를 찾을 수 없습니다.' });
+    }
+
+    res.json(updatedMemo);
+  } catch (error) {
+    console.error('❌ 메모 수정 오류:', error);
+    res.status(500).json({ message: '서버 오류가 발생했습니다.', error: error.message });
+  }
+});
+
+// 메모 삭제 (DELETE) API
+app.delete('/api/engineer-memo/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // TimeMemo 모델 사용 (EngineerMemo가 아닌)
+    const deletedMemo = await TimeMemo.findByIdAndDelete(id);
+
+    if (!deletedMemo) {
+      return res.status(404).json({ message: '메모를 찾을 수 없습니다.' });
+    }
+
+    res.json({ message: '메모가 성공적으로 삭제되었습니다.' });
+  } catch (error) {
+    console.error('❌ 메모 삭제 오류:', error);
+    res.status(500).json({ message: '서버 오류가 발생했습니다.', error: error.message });
   }
 });
 

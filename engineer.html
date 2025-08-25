@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>업무 수행 기록 시스템</title>
+    <title>MAZIPSA</title>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js"></script>
     <style>
@@ -123,7 +123,7 @@
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            height: 377px;
+            height: 563px;
         }
 
         .chat-window {
@@ -462,6 +462,70 @@
 
         .work-item:last-child {
             border-bottom: none;
+        }
+
+        .work-item-row {
+            display: grid;
+            grid-template-columns: 60px 400px 1fr; /* 날짜 | 프로젝트·고객사·장비 | 내용 */
+            align-items: center;
+            gap: 0;
+            padding: 10px 0;
+            border-bottom: 1px solid #e2e8f0;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .work-item-row:hover {
+            background: #f7fafc;
+        }
+
+        .work-cell {
+            font-size: 0.9rem;
+            color: #2d3748;
+            padding: 0 10px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            border-right: 1px solid #d4d5d6; /* 옅은 구분선 */
+            text-align: center;
+        }
+
+        .work-cell:last-child {
+            border-right: none; /* 마지막 칸은 선 제거 */
+        }
+
+        /* 가운데 칸(프로젝트 + 고객사/장비) */
+        .work-info {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start; /* 왼쪽 정렬 */
+            gap: 4px;
+        }
+
+        .work-project {
+            font-weight: 600;
+            color: #1a202c;
+        }
+
+        .work-meta {
+            font-size: 0.85rem;
+            color: #4a5568;
+        }
+        .work-meta span {
+            margin-right: 6px;
+        }
+
+        /* 내용 칸은 왼쪽 정렬 */
+        .work-cell.content-cell {
+            text-align: left;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;  /* ✅ 2줄 제한 */
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: normal;    /* 줄바꿈 허용 */
+            font-size: 0.9rem;
+            line-height: 1.4;
         }
 
         .work-header {
@@ -951,6 +1015,7 @@
     .memo-list li {
         display: flex;
         justify-content: space-between;
+        align-items: center; /* 세로 중앙 정렬 */
         padding: 8px 5px;
         font-size: 0.9rem;
         border-bottom: 1px solid #edf2f7;
@@ -958,9 +1023,32 @@
     .memo-list li:last-child {
         border-bottom: none;
     }
+    .memo-content {
+        flex-grow: 1; /* 내용이 남는 공간을 모두 차지하도록 */
+    }
     .memo-list strong {
         color: #5a67d8;
         margin-right: 10px;
+    }
+    .memo-actions {
+        display: flex;
+        gap: 8px; /* 버튼 사이 간격 */
+    }
+    .memo-actions button {
+        background: none;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        padding: 3px 8px;
+        cursor: pointer;
+        font-size: 0.8rem;
+    }
+    .memo-actions .edit-btn {
+        color: #2980b9;
+        border-color: #2980b9;
+    }
+    .memo-actions .delete-btn {
+        color: #c0392b;
+        border-color: #c0392b;
     }
     .memo-indicator {
         font-size: 0.75rem;
@@ -1157,10 +1245,11 @@
         <label for="memoText">내용</label>
         <textarea id="memoText" placeholder="간단한 내용을 입력하세요"></textarea>
       </div>
+    <input type="hidden" id="memoEditId">
     </div>
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeTimeMemoModal()">취소</button>
-      <button class="btn" onclick="saveTimeMemo()">저장</button>
+      <button class="btn" id="memoSubmitBtn" onclick="handleMemoSubmit()">저장</button>
     </div>
   </div>
 </div>
@@ -1439,18 +1528,27 @@ ${userQuery}
             const recordsToShow = records.slice(startIndex, endIndex);
 
             // 업무 기록 렌더링
-            workList.innerHTML = recordsToShow.map(work => `
-                <div class="work-item" onclick="editWork('${work.id}')">
-                    <div class="work-header">
-                        <div class="project-name">${work.project}</div>
-                        <div>
-                           <span class="work-date">${formatDate(work.date)}</span>
+            workList.innerHTML = recordsToShow.map(work => {
+                const fullContent = work.content || "";
+
+                return `
+                    <div class="work-item-row" onclick="editWork('${work.id}')">
+                        <div class="work-cell">${formatDate(work.date)}</div>
+                        <div class="work-cell">
+                            <div class="work-info">
+                                <div class="work-project">${work.project}</div>
+                                <div class="work-meta">
+                                    <span>${work.client}</span>
+                                    <span>${work.equipment}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="work-cell content-cell" title="${fullContent.replace(/"/g, '&quot;')}">
+                            ${fullContent}
                         </div>
                     </div>
-                    <div class="work-meta">${work.client} · ${work.equipment}</div>
-                    <div class="work-content">${work.content}</div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
 
             // 페이지네이션 표시
             if (totalPages > 1) {
@@ -2027,83 +2125,169 @@ function populateTimeDropdown(selectedTime = "") {
     }
 }
 
-        // openTimeMemoModal 함수 전체 교체
-        function openTimeMemoModal(dateString, memos = []) {
-            populateTimeDropdown();
-            selectedDateString = dateString;
-            document.getElementById('memoText').value = '';
-            
-            // 모달 제목에 날짜 표시
-            const modalTitle = document.getElementById('memoModalTitle');
-            modalTitle.textContent = `${dateString} 메모`;
+        // --- 👇 메모 관련 함수 전면 수정 ---
 
-            const existingMemosContainer = document.getElementById('existingMemosContainer');
-            const memoList = document.getElementById('memoList');
-            memoList.innerHTML = ''; // 목록 초기화
+    function openTimeMemoModal(dateString, memos = []) {
+        populateTimeDropdown();
+        selectedDateString = dateString;
+        document.getElementById('memoModalTitle').textContent = `${dateString} 메모`;
+        
+        // 폼 초기화
+        document.getElementById('memoText').value = '';
+        document.getElementById('memoEditId').value = '';
+        document.getElementById('memoSubmitBtn').textContent = '저장';
 
-            if (memos.length > 0) {
-                // 시간순으로 정렬
-                memos.sort((a, b) => a.time.localeCompare(b.time));
+        const existingMemosContainer = document.getElementById('existingMemosContainer');
+        const memoList = document.getElementById('memoList');
+        memoList.innerHTML = ''; // 목록 초기화
 
-                memos.forEach(memo => {
-                    const listItem = document.createElement('li');
-                    listItem.innerHTML = `<strong>${memo.time}</strong> <span>${memo.text}</span>`;
-                    memoList.appendChild(listItem);
-                });
-                existingMemosContainer.style.display = 'block';
+        if (memos.length > 0) {
+            memos.sort((a, b) => a.time.localeCompare(b.time));
+            memos.forEach(memo => {
+                const listItem = document.createElement('li');
+                listItem.innerHTML = `
+                    <div class="memo-content">
+                        <strong>${memo.time}</strong>
+                        <span>${memo.text}</span>
+                    </div>
+                    <div class="memo-actions">
+                        <button class="edit-btn" onclick="showEditMemo('${memo._id}')">수정</button>
+                        <button class="delete-btn" onclick="deleteTimeMemo('${memo._id}')">삭제</button>
+                    </div>
+                `;
+                memoList.appendChild(listItem);
+            });
+            existingMemosContainer.style.display = 'block';
+        } else {
+            existingMemosContainer.style.display = 'none';
+        }
+
+        document.getElementById('timeMemoModal').classList.add('visible');
+    }
+
+    function closeTimeMemoModal() {
+        document.getElementById('timeMemoModal').classList.remove('visible');
+    }
+
+    function handleMemoSubmit() {
+        const editId = document.getElementById('memoEditId').value;
+        if (editId) {
+            updateTimeMemo(editId);
+        } else {
+            saveTimeMemo();
+        }
+    }
+
+    async function saveTimeMemo() {
+        const time = document.getElementById('memoTime').value;
+        const text = document.getElementById('memoText').value.trim();
+
+        if (!selectedDateString || !time || !text) {
+            alert('시간과 내용을 모두 입력해주세요.');
+            return;
+        }
+
+        try {
+            const res = await fetch(`${API_BASE}/engineer-memo`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    engineerId: currentUser.id,
+                    date: selectedDateString,
+                    time,
+                    text
+                })
+            });
+
+            if (res.ok) {
+                const newMemoData = await res.json();
+                // 서버 응답 구조가 { memo: { ... } } 일 경우를 대비
+                const newMemo = newMemoData.memo ? newMemoData.memo : newMemoData;
+                timeMemos.push(newMemo);
+                alert('메모가 저장되었습니다.');
+                refreshMemoModal(); // 모달 내용 새로고침
+                updateCalendar();
             } else {
-                existingMemosContainer.style.display = 'none';
+                alert('저장에 실패했습니다.');
             }
+        } catch (err) {
+            console.error('저장 오류:', err);
+            alert('서버 오류가 발생했습니다.');
+        }
+    }
 
-            // 모달 표시
-            document.getElementById('timeMemoModal').classList.add('visible');
+    function showEditMemo(memoId) {
+        const memo = timeMemos.find(m => m._id == memoId);
+        if (memo) {
+            document.getElementById('memoEditId').value = memo._id;
+            populateTimeDropdown(memo.time);
+            document.getElementById('memoText').value = memo.text;
+            document.getElementById('memoSubmitBtn').textContent = '수정';
+        }
+    }
+
+    async function updateTimeMemo(memoId) {
+        const time = document.getElementById('memoTime').value;
+        const text = document.getElementById('memoText').value.trim();
+
+        if (!time || !text) {
+            alert('시간과 내용을 모두 입력해주세요.');
+            return;
         }
 
-        function closeTimeMemoModal() {
-            document.getElementById('timeMemoModal').classList.remove('visible');
-        }
+        try {
+            const res = await fetch(`${API_BASE}/engineer-memo/${memoId}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ time, text })
+            });
 
-        // saveTimeMemo 함수 전체 교체
-        async function saveTimeMemo() {
-            const time = document.getElementById('memoTime').value;
-            const text = document.getElementById('memoText').value.trim();
-
-            if (!selectedDateString || !time || !text) {
-                alert('시간과 내용을 모두 입력해주세요.');
-                return;
-            }
-
-            const payload = {
-                engineerId: currentUser.id,
-                date: selectedDateString,
-                time,
-                text
-            };
-
-            try {
-                const res = await fetch(`${API_BASE}/engineer-memo`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-
-                if (res.ok) {
-                    const newMemoData = await res.json();
-                    // 전역 메모 배열에 새 메모 추가
-                    timeMemos.push(newMemoData.memo);
-                    
-                    alert('메모가 저장되었습니다.');
-                    closeTimeMemoModal();
-                    // 달력을 새로고침하여 메모 아이콘 즉시 반영
-                    updateCalendar();
-                } else {
-                    alert('저장에 실패했습니다.');
+            if (res.ok) {
+                const updatedMemo = await res.json();
+                const index = timeMemos.findIndex(m => m._id == memoId);
+                if (index !== -1) {
+                    timeMemos[index] = updatedMemo;
                 }
-            } catch (err) {
-                console.error('저장 오류:', err);
-                alert('서버 오류가 발생했습니다.');
+                alert('메모가 수정되었습니다.');
+                refreshMemoModal();
+                updateCalendar();
+            } else {
+                alert('수정에 실패했습니다.');
             }
+        } catch (err) {
+            console.error('수정 오류:', err);
+            alert('서버 오류가 발생했습니다.');
         }
+    }
+
+    async function deleteTimeMemo(memoId) {
+        if (!confirm('정말로 이 메모를 삭제하시겠습니까?')) return;
+
+        try {
+            const res = await fetch(`${API_BASE}/engineer-memo/${memoId}`, {
+                method: 'DELETE'
+            });
+
+            if (res.ok) {
+                timeMemos = timeMemos.filter(m => m._id != memoId);
+                alert('메모가 삭제되었습니다.');
+                refreshMemoModal();
+                updateCalendar();
+            } else {
+                alert('삭제에 실패했습니다.');
+            }
+        } catch (err) {
+            console.error('삭제 오류:', err);
+            alert('서버 오류가 발생했습니다.');
+        }
+    }
+
+    // 모달 내용만 새로 고치는 함수
+    function refreshMemoModal() {
+        const memosForDate = timeMemos.filter(memo => memo.date === selectedDateString);
+        openTimeMemoModal(selectedDateString, memosForDate);
+    }
+    // --- 🔼 메모 관련 함수 종료 ---
         
     </script>
 </body>
