@@ -1732,7 +1732,10 @@ ${userQuery}
                 if (!response.ok) throw new Error('업무 기록을 불러올 수 없습니다.');
                 
                 workRecords = await response.json();
-                updateWorkList(); // 목록 업데이트 함수 호출
+                // ✅ 로드 후 최신순으로 정렬 (혹시 서버에서 정렬되지 않은 데이터가 올 경우를 대비)
+                workRecords.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+                updateWorkList();
             } catch (error) {
                 console.error('업무 기록 로드 실패:', error);
                 document.getElementById('workList').innerHTML = `<div class="error">${error.message}</div>`;
@@ -1741,8 +1744,10 @@ ${userQuery}
 
         // 내 업무 목록 UI 업데이트 (페이지네이션 적용)
         function updateWorkList() {
+            console.log('updateWorkList 호출됨, workRecords 개수:', workRecords.length);
             const filteredRecords = workRecords.filter(work => 
                 work.status && work.client && work.client.trim() !== '기타');
+                console.log('필터링된 레코드 개수:', filteredRecords.length);
             renderWorkRecordsWithPagination(filteredRecords, currentPage);
         }
 
@@ -1845,22 +1850,43 @@ ${userQuery}
                 });
 
                 if (response.ok) {
-                    showMessage('업무 기록이 수정되었습니다.', 'success', 'editFormMessage');
+                    const updatedRecord = await response.json();
                     
                     // 로컬 데이터 업데이트
                     const recordIndex = workRecords.findIndex(w => w.id == recordId);
                     if (recordIndex > -1) {
-                        workRecords[recordIndex].date = date;
-                        workRecords[recordIndex].content = content;
+                        workRecords[recordIndex] = {
+                        ...workRecords[recordIndex],
+                        ...updatedRecord,
+                        date: date,
+                        content: content
+                        };
+                        }
+
+                    // ✅ 날짜 수정 후 최신순으로 다시 정렬
+                    workRecords.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+                    // 검색 모드인 경우 searchResults도 업데이트 및 정렬
+                    if (isSearchMode && searchResults.length > 0) {
+                    const searchIndex = searchResults.findIndex(w => w.id == recordId);
+                    if (searchIndex > -1) {
+                    searchResults[searchIndex] = workRecords[recordIndex];
+                    searchResults.sort((a, b) => new Date(b.date) - new Date(a.date));
                     }
 
-                    // 1.5초 후에 모달 닫고 UI 갱신
+                    }
+
+                    // UI 갱신
+                    updateWorkList();
+                    updateCalendar();
+                    updateStats();
+
+                    showMessage('업무 기록이 수정되었습니다.', 'success', 'editFormMessage');
+
+
                     setTimeout(() => {
-                        closeEditModal();
-                        updateWorkList();
-                        updateCalendar();
-                        updateStats();
-                    }, 1500);
+                    closeEditModal();
+                    }, 1000);
 
                 } else {
                     const errorData = await response.json();
